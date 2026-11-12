@@ -1,6 +1,6 @@
-# OpenGong — 5.56 Impact Multilateration System Design
+# OpenGong — Steel-Target Impact Multilateration System Design
 
-Nov 11, 2026 (jig section revised: one ring for rectangular and round plates)
+Nov 12, 2026 (wireless range and per-caliber ammunition guidance added; Nov 11: jig section revised for one ring on rectangular and round plates)
 
 ## 1. Summary
 
@@ -210,9 +210,52 @@ Before live fire:
    - First, raise the antennas.
    - Then, move to SF9 or a higher transmit power.
 
-## 10. Safety (read before shooting)
+## 10. Ammunition and safety (read before shooting)
 
-- **Plate rating:** commonly cited guidance for 5.56 on AR500 is at least 3/8 in plate, at least 100 yd with M193-type ammunition, and **no steel-core or penetrator rounds** such as M855 or M855A1. Follow your plate maker's rating, which takes precedence.
+The system works with any single-projectile round the plate is rated for. It times the stress wave an impact sends through the steel, and that works the same way for every cartridge. The calibration taps come from a hand center punch, which hits far softer than any bullet. If the punch taps register on every channel, bullets will too. These conclusions follow from the design; they haven't been checked with live fire yet.
+
+### 10.1 Plate rating per round
+
+The plate maker's rating always takes precedence over this table. The figures are commonly cited starting points, and they vary between makers.
+
+| Round | Plate (AR500) | Minimum distance |
+| --- | --- | --- |
+| .22 LR and other rimfire | 1/4 in or thicker | 25 yd |
+| Handgun: 9 mm, .40, .45 ACP | 3/8 in | 15 yd |
+| Magnum handgun: .357, .44 Mag | 3/8 in | 25 yd |
+| 5.56/.223 (M193-type) | 3/8 in | 100 yd |
+| .308/7.62×51, .30-06 | 1/2 in | 100 yd |
+| Magnum rifle: .300 Win Mag and similar | 1/2 in AR500 or AR550 | 200 yd |
+| Shotgun slugs | Per the maker; many rate 3/8–1/2 in | Per the maker |
+| .50 BMG and larger | Specialist plate; beyond this design | — |
+
+These rules apply to every round:
+
+- **No steel-core or penetrator ammunition** such as M855, M855A1 or steel-core 7.62×39. It craters or holes the plate and ricochets.
+- **Respect the velocity limit.** Most makers rate AR500 for impact velocities below about 3,000 ft/s. The minimum distances above exist mainly to let fast rounds slow down.
+- **Retire a cratered or dimpled plate.** A crater sends splash back toward the shooter and also changes how waves travel through the plate (section 11).
+
+### 10.2 Firmware settings per round
+
+| Round | Plate thickness (`set h`) | Hold-off (`set hold`) | What to watch |
+| --- | --- | --- | --- |
+| Rimfire and handgun | 6.35 mm (1/4 in) or 9.5 mm (3/8 in) | 250 ms (default) | Weak signals. Check that the far sensors catch the fast wave. |
+| 5.56/.223 | 9.5 mm (3/8 in) | 250 ms (default) | Reference case |
+| Full-power and magnum rifle | 12.7 mm (1/2 in) | 250 ms. Raise it to 400–500 ms if one hit reports twice. | Longer ringing; sensor bonds under heavy shock |
+| Shotgun slugs | Plate's actual thickness | 250–500 ms | Same as full-power rifle |
+
+- **Plate thickness:** the solver includes it in each sensor's path length. Set the real value with `set h <mm>`, `save` it, and recalibrate on the new plate (section 8).
+- **Light rounds:** a light hit still produces a much bigger signal than a punch tap. The risk is that a far sensor misses the weak fast wave and triggers on the slow one, which puts the hit in the wrong place (section 11). During bring-up, fire a few rounds and confirm that hits near the edge of the ring don't get flagged for a high residual.
+- **Heavy rounds:** the input clamps already handle piezo spikes over 100 V, so bigger signals aren't a problem. A heavy hit makes the plate ring longer, though. If a second "shot" appears right after a real one, raise the hold-off. Repeated hard shock also makes sensors more likely to come unglued, so watch each channel's residuals for drift.
+- **Rate of fire:** hits during the hold-off aren't recorded. At 250 ms the system takes up to 4 hits per second; at 500 ms, up to 2. Very fast doubles or automatic fire will miss shots. At SF9 the radio also falls behind fast strings (section 9.1).
+
+### 10.3 Rounds that don't work
+
+- **Buckshot and birdshot:** many pellets hit within microseconds of each other, so different sensors trigger on different pellets. The solution is garbage, usually flagged with a high residual.
+- **Hits within one hold-off of each other,** from two shooters on the same plate or from automatic fire. Only the first is recorded.
+
+### 10.4 Range setup
+
 - **Angle:** hang the plate with its face tilted 15–20° downward to send bullet splash into the ground. The coordinates are in the plate's own plane, so tilt doesn't affect them.
 - **Splash protection:** bullet fragments spray outward along the plate face. Keep **all electronics and cables fully behind the plate** under a steel shield such as 1/4 in steel angle, and route cables down and back.
 - **Hanging:** chains or straps are fine. Rubber-isolated hangers shorten ringing and allow a faster re-arm.

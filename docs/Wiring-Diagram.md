@@ -4,7 +4,7 @@
 
 ## 1. System wiring
 
-![System wiring: five piezo sensors → analog board → Heltec V3 → LoRa → receiver](images/system-wiring.svg)
+![System wiring: five piezo sensors → analog board → Heltec V3 → LoRa → receiver → Wi-Fi web app or USB](images/system-wiring.svg)
 
 Everything except the receiver sits behind the plate under a steel shield. The five TRIG lines go into hardware capture pins.
 

@@ -24,7 +24,7 @@ using namespace og::heltec;
 namespace {
 
 constexpr int kMaxHits = 100;
-constexpr float kPlotRingMm = 140.0f;  // sensor ring radius drawn on the plot
+constexpr float kPlotRingMm = 120.0f;  // sensor ring radius drawn on the plot
 
 SPIClass s_spi(HSPI);
 SX1262* s_radio = nullptr;

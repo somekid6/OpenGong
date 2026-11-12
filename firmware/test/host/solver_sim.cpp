@@ -163,6 +163,81 @@ int main() {
            "6 ch: bad channel 3 dropped and position recovered");
   }
 
+  // ---- 4. 120 mm jig ring, back-face punch calibration (System-Design 4.1 / 8) ----
+  printf("\n120 mm jig ring (firmware defaults), back-face taps at P0-P5, check at H1/H2/H4:\n");
+  {
+    Geometry r120;
+    r120.n = 5;
+    r120.h = 9.5;
+    r120.v = 5.9;
+    const double S[5][2] = {{-70.53, 97.08}, {70.53, 97.08}, {114.13, -37.08}, {0, -120}, {-114.13, -37.08}};
+    for (int i = 0; i < 5; ++i) {
+      r120.x[i] = S[i][0];
+      r120.y[i] = S[i][1];
+    }
+    // Accuracy at 200 ns (doc: within 110 mm -> 1.1 mean / 2.2 p95).
+    std::normal_distribution<double> n200b(0, 0.200);
+    std::vector<double> err;
+    for (int k = 0; k < 2000; ++k) {
+      const double r = 110 * sqrt(uni(rng)), a = 2 * M_PI * uni(rng);
+      const double x = r * cos(a), y = r * sin(a);
+      double t[kSolverMaxCh];
+      predictArrivals(r120, x, y, 0, t);
+      for (int i = 0; i < 5; ++i) t[i] += n200b(rng);
+      Fix f = solveFix(r120, t, 0x1F);
+      err.push_back(hypot(f.x - x, f.y - y));
+    }
+    std::sort(err.begin(), err.end());
+    double mean = 0;
+    for (double e : err) mean += e;
+    mean /= err.size();
+    printf("  200 ns, within 110 mm: mean %.2f mm, p95 %.2f mm\n", mean, err[1900]);
+    expect(mean < 1.5 && err[1900] < 3.0, "120 mm ring matches the doc's 1.1 / 2.2 mm");
+
+    Geometry truthB = r120;
+    truthB.v = 5.75;
+    truthB.h = 0;  // punch strikes the back face
+    const double P[6][2] = {{0, 0}, {0, 60}, {57.06, 18.54}, {35.27, -48.54}, {-35.27, -48.54}, {-57.06, 18.54}};
+    std::vector<CalTap> bt;
+    for (const auto& p : P)
+      for (int rep = 0; rep < 4; ++rep) {
+        CalTap tp;
+        tp.x = p[0];
+        tp.y = p[1];
+        tp.h = 0;
+        tp.mask = 0x1F;
+        predictArrivals(truthB, tp.x, tp.y, 50.0, tp.t_us);
+        for (int i = 0; i < 5; ++i) tp.t_us[i] += trueDelay[i] + noise(rng);
+        bt.push_back(tp);
+      }
+    CalResult c2 = fitCalibration(r120, bt.data(), static_cast<int>(bt.size()), true);
+    printf("  fitted v = %.4f mm/us (true 5.75), rms %.0f ns\n", c2.v, c2.rms_ns);
+    expect(c2.ok && fabs(c2.v - 5.75) < 0.05, "back-face fit recovers wave speed");
+
+    Geometry chk = r120;
+    chk.v = c2.v;
+    chk.h = 0;
+    const double H[3][2] = {{87.50, 28.43}, {54.08, -74.43}, {-87.50, 28.43}};
+    // Judge each H point on the mean of its 5 taps: single taps at this
+    // jitter occasionally exceed 2 mm even with a perfect calibration.
+    double worstMean = 0, worstTap = 0;
+    for (const auto& hp : H) {
+      double sum = 0;
+      for (int rep = 0; rep < 5; ++rep) {
+        double t[kSolverMaxCh];
+        predictArrivals(truthB, hp[0], hp[1], 0, t);
+        for (int i = 0; i < 5; ++i) t[i] += trueDelay[i] + noise(rng) - c2.delay_us[i];
+        Fix f = solveFix(chk, t, 0x1F);
+        const double e = hypot(f.x - hp[0], f.y - hp[1]);
+        sum += e;
+        worstTap = fmax(worstTap, e);
+      }
+      worstMean = fmax(worstMean, sum / 5);
+    }
+    printf("  held-out: worst per-point mean %.2f mm, worst single tap %.2f mm\n", worstMean, worstTap);
+    expect(worstMean < 2.0, "held-out H points average within the doc's 2 mm");
+  }
+
   printf("\n%s (%d failure%s)\n", failures ? "FAILED" : "ALL PASSED", failures, failures == 1 ? "" : "s");
   return failures ? 1 : 0;
 }

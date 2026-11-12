@@ -15,7 +15,8 @@ char s_line[160];
 size_t s_len = 0;
 
 const char kHelp[] =
-    "Commands (coordinates in mm, jig frame; channels 1-6):\n"
+    "Commands (mm, front view, origin = ring centre; channels 1-6):\n"
+    "<pt> = '<x> <y>' or a punch guide P0-P5, H1, H2, H4\n"
     "  show                     print configuration\n"
     "  set s <ch> <x> <y>       sensor position\n"
     "  set d <ch> <ns>          channel delay\n"
@@ -28,9 +29,9 @@ const char kHelp[] =
     "  set win <us> | hold <ms> | rlim <ns>\n"
     "  save | load | defaults | reboot\n"
     "  stats                    trigger and link counters\n"
-    "  sim <x> <y> [noise_ns]   inject a synthetic hit\n"
-    "  check <x> <y> | check off\n"
-    "  cal start [front|back] | cal at <x> <y> | cal undo\n"
+    "  sim <pt> [noise_ns]      inject a synthetic hit\n"
+    "  check <pt> | check off\n"
+    "  cal start [back|front] | cal at <pt> | cal undo\n"
     "  cal list | cal fit [fixv] | cal apply | cal stop\n";
 
 bool parseCh(const char* s, int& ch, Print& out) {
@@ -41,6 +42,35 @@ bool parseCh(const char* s, int& ch, Print& out) {
   }
   ch -= 1;
   return true;
+}
+
+// Punch guides on the 120 mm jig ring (System-Design 8, step 2), front view.
+struct NamedPoint {
+  const char* name;
+  float x, y;
+};
+const NamedPoint kPoints[] = {
+    {"P0", 0.0f, 0.0f},      {"P1", 0.0f, 60.0f},      {"P2", 57.06f, 18.54f},
+    {"P3", 35.27f, -48.54f}, {"P4", -35.27f, -48.54f}, {"P5", -57.06f, 18.54f},
+    {"H1", 87.50f, 28.43f},  {"H2", 54.08f, -74.43f},  {"H4", -87.50f, 28.43f},
+};
+
+bool parseF(const char* s, float& v, Print& out);
+
+// Reads either a named punch point ("P2", "h1") or two numbers "<x> <y>".
+bool parsePoint(char*& save, float& x, float& y, Print& out) {
+  const char* a = strtok_r(nullptr, " \t", &save);
+  if (a) {
+    for (const NamedPoint& p : kPoints) {
+      if (!strcasecmp(a, p.name)) {
+        x = p.x;
+        y = p.y;
+        return true;
+      }
+    }
+  }
+  const char* b = strtok_r(nullptr, " \t", &save);
+  return parseF(a, x, out) && parseF(b, y, out);
 }
 
 bool parseF(const char* s, float& v, Print& out) {
@@ -152,15 +182,17 @@ void cmdSet(char* save, Print& out) {
 
 void cmdCal(char* save, Print& out) {
   const char* sub = strtok_r(nullptr, " \t", &save);
-  const char* a = strtok_r(nullptr, " \t", &save);
-  const char* b = strtok_r(nullptr, " \t", &save);
   float x, y;
+  if (sub && !strcmp(sub, "at")) {
+    if (parsePoint(save, x, y, out)) calAt(x, y, out);
+    return;
+  }
+  const char* a = strtok_r(nullptr, " \t", &save);
   if (!sub) {
     calList(out);
   } else if (!strcmp(sub, "start")) {
-    calStart(a && !strcmp(a, "back"), out);
-  } else if (!strcmp(sub, "at")) {
-    if (parseF(a, x, out) && parseF(b, y, out)) calAt(x, y, out);
+    // Jig punch guides strike the back face (System-Design 8, step 3).
+    calStart(!(a && !strcmp(a, "front")), out);
   } else if (!strcmp(sub, "undo")) {
     calUndo(out);
   } else if (!strcmp(sub, "list")) {
@@ -200,18 +232,15 @@ void consoleExec(char* line, Print& out) {
     stats(out);
   } else if (!strcmp(cmd, "sim")) {
     float x, y, n = 0;
-    const char* a = strtok_r(nullptr, " \t", &save);
-    const char* b = strtok_r(nullptr, " \t", &save);
+    if (!parsePoint(save, x, y, out)) return;
     const char* c = strtok_r(nullptr, " \t", &save);
-    if (!parseF(a, x, out) || !parseF(b, y, out)) return;
     if (c && !parseF(c, n, out)) return;
     processorSimulate(x, y, n, out);
   } else if (!strcmp(cmd, "check")) {
-    const char* a = strtok_r(nullptr, " \t", &save);
-    const char* b = strtok_r(nullptr, " \t", &save);
     float x, y;
-    if (a && !strcmp(a, "off")) processorCheck(false, 0, 0, out);
-    else if (parseF(a, x, out) && parseF(b, y, out)) processorCheck(true, x, y, out);
+    while (save && (*save == ' ' || *save == '\t')) ++save;
+    if (save && !strncmp(save, "off", 3)) processorCheck(false, 0, 0, out);
+    else if (parsePoint(save, x, y, out)) processorCheck(true, x, y, out);
   } else if (!strcmp(cmd, "cal")) {
     cmdCal(save, out);
   } else if (!strcmp(cmd, "reboot")) {

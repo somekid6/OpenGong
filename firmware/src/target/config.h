@@ -6,8 +6,9 @@
 
 #include "OpenGongProto.h"
 
-// Coordinates are in the "jig frame": millimetres from the calibration-origin
-// corner of the placement jig (System-Design section 4 / 8).
+// Coordinates are millimetres in the jig's front-view frame (System-Design
+// 4.1): origin at the ring centre, +y up as the plate hangs, x as seen by the
+// shooter (x_front = -x_model, since the jig model is drawn from the back).
 struct Config {
   uint32_t magic;
   uint16_t size;
@@ -19,7 +20,7 @@ struct Config {
   float    speed_mps;       // plate wave speed from calibration
   float    thick_mm;        // plate thickness
   float    aim_x, aim_y;    // point reported as (0, 0)
-  uint8_t  flip_x, flip_y;  // mirror reported axes (jig frame is the back face)
+  uint8_t  flip_x, flip_y;  // optionally mirror reported axes (default off)
   uint16_t window_us;       // capture window after the first trigger
   uint16_t holdoff_ms;      // ignore the plate while it rings
   uint16_t resid_limit_ns;  // flag shots above this RMS residual

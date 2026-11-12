@@ -43,21 +43,23 @@ The project uses Arduino-ESP32 3.x (ESP-IDF 5) through the pioarduino platform, 
 
 ## Coordinates
 
-All configuration uses the **jig frame**: millimetres from the calibration-origin corner of the placement jig, measured the same way as in your jig CAD model. That includes sensor positions, the aim point, calibration points and `sim`.
+All coordinates use the jig's **front-view frame** ([System-Design 4.1](../docs/System-Design.md#41-placement-jig-petg-model-opengong_jigscad)): millimetres from the **ring centre**, +y up as the plate hangs, and x as the shooter sees it. The jig model is drawn from the back, so x_front = −x_model; use the front-view values the OpenSCAD file prints. That frame covers sensor positions, the aim point, calibration points and `sim`.
 
-Shot results are reported **relative to the aim point** (default: centre of the sensor ring), **as seen by the shooter**. The jig is measured on the back of the plate, so x is mirrored by default (`set flip 1 0`). If hits show up flipped left-right or up-down, change `flip`.
+Shot results are reported relative to the aim point, which defaults to the ring centre (0, 0). `flip` is off by default. Use `set flip` only if hits show up mirrored.
 
-Each shot's JSON also includes `px`/`py`, the raw position in the jig frame.
+Each shot's JSON also includes `px`/`py`, the raw position before the aim offset is applied.
+
+Wherever a command takes a point (`cal at`, `check` and `sim`), you can type the name of a jig punch guide instead of coordinates: `P0`–`P5` (fitting) or `H1`, `H2` and `H4` (held out). These match System-Design 8, step 2.
 
 ## First boot and bring-up
 
-1. Flash the target, open the serial monitor and run `show`. The defaults are a 140 mm pentagon centred on a 12 × 12 in plate with channel 1 at the top, 5900 m/s and 9.5 mm thickness. Enter your real sensor positions from the jig model:
+1. Flash the target, open the serial monitor and run `show`. The defaults are the 120 mm jig ring from System-Design 8 (S1–S5 = channels 1–5, S4 straight down), 5900 m/s and 9.5 mm thickness. If your jig or plate differs, set the sensor positions and thickness, then save:
    ```
-   set s 1 152.40 292.40
-   set s 2 ...
+   set s 1 -70.53 97.08
+   set h 9.5
    save
    ```
-2. **Check the solver and radio without hardware.** Flash the receiver too, then on the target run `sim 152.4 200 150`. That's a synthetic hit 47.6 mm above centre with 150 ns noise. The target and receiver should both report about x 0, y +47.6, flagged `sim`.
+2. **Check the solver and radio without hardware.** Flash the receiver too, then on the target run `sim P1 150`. That's a synthetic hit at punch guide P1 (0, 60) with 150 ns noise. The target and receiver should both report about x 0, y +60, flagged `sim`.
 3. **Check timer sync on the bench.** Drive all five TRIG inputs from one signal, either a 3.3 V function generator or a single comparator output, and pulse it. Every shot should show `t_ns` within about ±25 ns on all channels. If channels 4–5 are offset from 1–3, the group sync isn't working.
 4. **Check the threshold.** Run `stats`; it shows per-channel edge counts while armed. With the plate quiet, the counts should stay still. If they climb, raise VTH with RV1.
 5. **Check the sensors.** Tap with the center punch. All channels should fire (`"fired":"12345"`), and for repeated taps at one spot, `t_ns` should repeat within about 200 ns.
@@ -66,21 +68,28 @@ Each shot's JSON also includes `px`/`py`, the raw position in the jig frame.
 
 The fit runs on the target itself, so no laptop is needed. With known tap positions, the arrival-time model is linear in 1/v, the channel delays and each tap's start time. It's solved directly, not iteratively.
 
+With the jig seated on the back face:
+
 ```
-cal start                 # taps on the front (shooter) face; "cal start back" for back-face taps
-cal at 152.4 152.4        # punch hole 1 position (jig frame)
-                          #   ...tap 3-5 times...
-cal at 200 160            # next hole
-                          #   ...tap 3-5 times... repeat for 5-10 holes spread over the ring
+cal start                 # back-face taps (thickness set to 0 for the fit); "cal start front" otherwise
+cal at P0                 #   ...tap 3-5 times through guide P0...
+cal at P1                 #   ...tap 3-5 times... and so on through P5
 cal list                  # taps per point
 cal undo                  # drop the last tap if it was a bad one
 cal fit                   # fits wave speed + delays; prints per-point error with the new values
 cal apply                 # copy the result into the live config
 cal stop
-check 120 180             # tap a held-out hole: each shot now reports err_mm
+check H1                  # tap held-out guide H1 3-5 times: judge err_mean_mm (aim for < 2 mm);
+                          #   single taps can exceed 2 mm from timing jitter alone
+check H2
+check H4
 check off
 save
 ```
+
+While `check` is on, shots are solved for the same face as the last `cal start` (back by default). Turn it off with `check off` before live fire, so shots are solved with the full plate thickness.
+
+Recalibrate for each plate. Calibration and settings are stored on the target board, one set per board.
 
 - `cal fit fixv` fits only the delays and keeps the current wave speed.
 - Channel 1's delay is the zero reference, so other channels' delays can be negative.
@@ -102,8 +111,8 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `set n <3-6>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
 | `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window / hold-off / residual flag limit |
 | `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved |
-| `sim <x> <y> [noise_ns]` | Inject a synthetic hit |
-| `check <x> <y>` / `check off` | Report each shot's error from a known point |
+| `sim <pt> [noise_ns]` | Inject a synthetic hit (`<pt>` = `<x> <y>` or a guide name such as `P2`) |
+| `check <pt>` / `check off` | Report each shot's error from a known point |
 | `cal ...` | See [Calibration](#calibration) |
 
 Receiver-only commands: `rx clear` (start a new group), `rx stats` and `rx help`.

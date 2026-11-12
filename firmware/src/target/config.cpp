@@ -9,7 +9,7 @@ Config g_cfg;
 int g_activeCh = 5;
 
 namespace {
-constexpr uint32_t kMagic = 0x4F474331;  // "OGC1"
+constexpr uint32_t kMagic = 0x4F474332;  // "OGC2": ring-centred front-view frame
 constexpr const char* kNamespace = "opengong";
 constexpr const char* kKey = "cfg";
 }  // namespace
@@ -21,22 +21,22 @@ void configDefaults(Config& c) {
   c.n_ch = 5;
   c.min_ch = 4;
 
-  // 5 sensors on a 140 mm radius pentagon centred on a 12 x 12 in plate,
-  // channel 1 at the top. Replace with the coordinates from your jig model.
-  const float cx = 152.4f, cy = 152.4f, r = 140.0f;
+  // Default 120 mm jig ring (System-Design 8, step 1): front-view coordinates,
+  // origin at the ring centre, +y up. Channel n = sensor Sn.
+  static const float kRing[5][2] = {
+      {-70.53f, 97.08f}, {70.53f, 97.08f}, {114.13f, -37.08f}, {0.0f, -120.0f}, {-114.13f, -37.08f}};
   for (int i = 0; i < 5; ++i) {
-    const float a = static_cast<float>(M_PI / 2 + i * 2 * M_PI / 5);
-    c.sx[i] = cx + r * cosf(a);
-    c.sy[i] = cy + r * sinf(a);
+    c.sx[i] = kRing[i][0];
+    c.sy[i] = kRing[i][1];
   }
-  c.sx[5] = cx;  // optional 6th sensor: set its real position before use
-  c.sy[5] = cy;
+  c.sx[5] = 0.0f;  // optional 6th sensor: set its real position before use
+  c.sy[5] = 0.0f;
 
   c.speed_mps = 5900.0f;
   c.thick_mm = 9.5f;  // 3/8 in AR500
-  c.aim_x = cx;
-  c.aim_y = cy;
-  c.flip_x = 1;  // jig frame is measured on the back face; mirror for the shooter
+  c.aim_x = 0.0f;
+  c.aim_y = 0.0f;
+  c.flip_x = 0;  // coordinates are already front view
   c.flip_y = 0;
   c.window_us = 200;
   c.holdoff_ms = 250;

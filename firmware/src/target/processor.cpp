@@ -14,7 +14,7 @@ constexpr int kMaxTaps = 80;
 
 struct CalState {
   bool active = false;
-  bool backFace = false;
+  bool backFace = true;
   bool havePoint = false;
   float px = 0, py = 0;
   int pointNo = 0;
@@ -33,6 +33,8 @@ ShotView s_last;
 bool s_haveLast = false;
 bool s_check = false;
 float s_checkX = 0, s_checkY = 0;
+double s_checkSum = 0;
+int s_checkN = 0;
 
 og::Geometry geometryFrom(const Config& c, int nch, double h) {
   og::Geometry g;
@@ -132,7 +134,9 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
 
   // Solve with channel delays removed.
   const bool calTap = s_cal.active && s_cal.havePoint;
-  const double h = (calTap && s_cal.backFace) ? 0.0 : c.thick_mm;
+  // Calibration and check taps use the calibration face (back face by default:
+  // the jig's punch guides strike the same face as the sensors).
+  const double h = ((calTap || s_check) && s_cal.backFace) ? 0.0 : c.thick_mm;
   const og::Geometry g = geometryFrom(c, nch, h);
   double tc[og::kSolverMaxCh] = {0};
   for (int i = 0; i < nch; ++i) tc[i] = t_us[i] - c.delay_ns[i] / 1000.0;
@@ -190,8 +194,11 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
     Serial.printf(",\"cal_point\":%d,\"cal_taps\":%d", s_cal.pointNo, s_cal.ntaps);
     if (fix) Serial.printf(",\"err_mm\":%.2f", hypot(f.x - s_cal.px, f.y - s_cal.py));
   } else if (s_check && fix) {
-    Serial.printf(",\"err_mm\":%.2f,\"ex\":%.2f,\"ey\":%.2f", hypot(f.x - s_checkX, f.y - s_checkY),
-                  f.x - s_checkX, f.y - s_checkY);
+    const double e = hypot(f.x - s_checkX, f.y - s_checkY);
+    s_checkSum += e;
+    s_checkN++;
+    Serial.printf(",\"err_mm\":%.2f,\"ex\":%.2f,\"ey\":%.2f,\"err_mean_mm\":%.2f,\"check_taps\":%d", e,
+                  f.x - s_checkX, f.y - s_checkY, s_checkSum / s_checkN, s_checkN);
   }
   Serial.println('}');
 
@@ -249,7 +256,7 @@ void processorSimulate(float x, float y, float noiseNs, Print& out) {
     const double tt = t[i] + c.delay_ns[i] / 1000.0 + n;
     ev.ticks[i] = 1000000u + static_cast<uint32_t>(lround(tt * ticksPerUs));
   }
-  out.printf("sim: impact at (%.1f, %.1f) mm jig frame, noise %.0f ns\n", x, y, noiseNs);
+  out.printf("sim: impact at (%.1f, %.1f) mm, noise %.0f ns\n", x, y, noiseNs);
   processEvent(ev, og::SHOT_SIM);
 }
 
@@ -257,7 +264,11 @@ void processorCheck(bool on, float x, float y, Print& out) {
   s_check = on;
   s_checkX = x;
   s_checkY = y;
-  if (on) out.printf("check: each shot reports its error from (%.1f, %.1f)\n", x, y);
+  s_checkSum = 0;
+  s_checkN = 0;
+  if (on)
+    out.printf("check: each shot reports its error from (%.1f, %.1f), %s-face taps\n", x, y,
+               s_cal.backFace ? "back" : "front");
   else out.println("check: off");
 }
 
@@ -271,8 +282,8 @@ void calStart(bool backFace, Print& out) {
   s_cal.pointNo = 0;
   s_cal.ntaps = 0;
   s_cal.haveResult = false;
-  out.printf("cal: started, taps on the %s face. Next: 'cal at <x> <y>', then tap 3-5 times.\n",
-             backFace ? "back" : "front");
+  out.printf("cal: started, taps on the %s face (thickness %s). Next: 'cal at P0', then tap 3-5 times.\n",
+             backFace ? "back" : "front", backFace ? "ignored" : "included");
 }
 
 void calAt(float x, float y, Print& out) {

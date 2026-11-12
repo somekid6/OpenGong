@@ -54,6 +54,8 @@ One VMID and one VTH serve all five channels. Turn RV1 until the comparators sto
 | `GPIO5` | TRIG3 (U5A) | MCPWM0 capture 2 |
 | `GPIO6` | TRIG4 (U5B) | MCPWM1 capture 0 |
 | `GPIO7` | TRIG5 (U6A) | MCPWM1 capture 1 |
+| `GPIO47` | TRIG6 (optional 6th sensor) | MCPWM1 capture 2 |
+| `GPIO48` | Nothing: leave unconnected | Firmware drives it internally to sync the two MCPWM capture timers |
 | `3V3` | FB1 → +3V3A analog rail | Always-on 3.3 V. Don't use `Ve`; it's switched by GPIO36. |
 | `GND` | Analog board GND (single point) | Star ground; cable shields tie here only. |
 | USB-C | Power bank (5 V) | Bank must supply ≥600 mA without auto-shutoff. |

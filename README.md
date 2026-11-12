@@ -6,6 +6,7 @@ Five piezo sensors bonded to the back of an AR500 steel plate locate 5.56×45 mm
 
 - [System design](docs/System-Design.md): architecture, accuracy budget, sensors, solver, calibration, radio link, safety, bill of materials and build plan.
 - [Wiring diagram](docs/Wiring-Diagram.md): system wiring, per-channel circuit, shared bias/threshold/power, Heltec pin map and channel-to-part map.
+- [Firmware](firmware/README.md): ESP32-S3 target (hardware capture, solver, on-board calibration, LoRa) and receiver firmware, with build, bring-up and calibration steps.
 
 ![System wiring](docs/images/system-wiring.svg)
 

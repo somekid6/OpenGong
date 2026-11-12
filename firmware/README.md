@@ -150,7 +150,7 @@ Flags:
 ## Radio link
 
 - **Settings:** SF8 / 125 kHz / CR 4/5 / +17 dBm / sync word 0x12, set in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h).
-- **Shot packets:** 18 bytes, about 90 ms on air. The receiver ACKs every copy it gets. If no ACK arrives, the target resends up to 3 times with a random back-off. Each target boot picks a random `boot` ID, and the receiver de-duplicates on (`boot`, `n`).
+- **Shot packets:** 20 bytes, about 103 ms on air (ACK: 9 bytes, about 72 ms). The receiver ACKs every copy it gets. If no ACK arrives, the target resends up to 3 times with a random back-off. Each target boot picks a random `boot` ID, and the receiver de-duplicates on (`boot`, `n`).
 - **Status:** the target sends a status packet every 30 s.
 - **Command responses:** sent back in 200-byte chunks.
 

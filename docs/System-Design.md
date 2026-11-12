@@ -118,13 +118,97 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 5. **Check:** tap the H points. If all of them come out within about 2 mm, you're done.
 6. **Live-fire check:** compare reported positions to the measured centers of the bullet splash marks.
 
-## 9. Wireless link (500 m)
+## 9. Wireless link and range
+
+**Summary:** the design range is **500 m**. With the default settings and antennas 1–2 m off the ground, the estimated link margin at 500 m over open ground is about **40 dB**, enough for a reliable link with room for brush and people in the path. On flat, open ground the estimated limit is **2–4 km**. These figures come from the link budget below, not from field tests; range-test before relying on them.
 
 - **Boards:** **Heltec WiFi LoRa 32 V3** (ESP32-S3 + SX1262 LoRa radio + small display, about $20) at both ends. The target board is also the timing and solving computer. US band is 915 MHz.
-- **Settings:** spreading factor 7–9, 125 kHz bandwidth, +14 to +20 dBm. A 20–30 byte packet takes about 50–200 ms to send. 500 m line-of-sight is well within LoRa's range.
-- **Antennas:** replace the stock stubs with proper 915 MHz dipoles. Mount the target antenna 1–2 m up, behind cover and out of the line of fire.
-- **Packet:** shot number, x and y (in 0.1 mm units), residual, sensors used, battery level and a checksum. The receiver acknowledges each shot, and the target resends up to 3 times.
+- **Settings:** SF8, 125 kHz bandwidth, coding rate 4/5, +17 dBm by default (in `OpenGongProto.h`). SF7–9 and +14 to +20 dBm are the design range. Both boards must use the same settings, so reflash both after a change.
+- **Antennas:** replace the stock stubs with proper 915 MHz dipoles. Mount the target antenna 1–2 m up, behind cover and out of the line of fire (see *Antenna height and placement*).
+- **Packet:** a 20-byte shot packet: shot number, x and y (in 0.1 mm units), residual, sensors used, battery level and a checksum. The receiver acknowledges each shot with a 9-byte ACK, and the target resends up to 3 times.
 - **Receiver:** USB serial to a laptop, or Bluetooth to a phone. A simple Python or web app plots the hits, group size and center, and saves each session.
+
+### 9.1 Time on air and shot rate
+
+Time on air at 125 kHz with an 8-symbol preamble, explicit header and CRC:
+
+| | SF7 | **SF8 (default)** | SF9 |
+| --- | --- | --- | --- |
+| Shot packet (20 B) | 57 ms | **103 ms** | 185 ms |
+| ACK (9 B) | 41 ms | **72 ms** | 144 ms |
+| Shot + ACK exchange | ~100 ms | **~180 ms** | ~330 ms |
+| Receiver sensitivity (SX1262, typical) | about −124 dBm | **about −127 dBm** | about −129 dBm |
+| Lowest SNR it can decode | −7.5 dB | **−10 dB** | −12.5 dB |
+
+- **Keeping up with fire:** the target can register a hit every 250 ms (the hold-off). At SF7 or SF8 the link clears each shot before the next can arrive. At SF9 a fast string gets ahead of the radio. The 16-message transmit queue absorbs about 15 shots, and the backlog then drains at about 3 shots/s.
+- **When the receiver doesn't answer:** an unacknowledged shot takes 4 attempts, about 1.6 s at SF8, and is then dropped. It is still printed on the target's USB port and shown on its OLED. Shots aren't stored for resending later, and once the queue is full, new shots are dropped.
+
+### 9.2 Link budget (SF8, +17 dBm)
+
+| Item | Value |
+| --- | --- |
+| Transmit power | +17 dBm |
+| Antenna gain, both ends (dipoles) | +4 dBi |
+| Cable and connector losses, both ends | −2 dB |
+| Receiver sensitivity | −127 dBm |
+| **Maximum path loss the link can tolerate** | **≈146 dB** |
+
+Estimated path loss over 500 m at 915 MHz:
+
+| Conditions | Path loss | Margin |
+| --- | --- | --- |
+| Free space (both antennas high above ground) | 86 dB | 60 dB |
+| Flat open ground, both antennas 1.5 m up | ≈101 dB | ≈45 dB |
+| Flat open ground, both antennas 1 m up | ≈108 dB | ≈38 dB |
+
+Real ranges add losses the table doesn't include. Each of these costs extra path loss:
+
+- **Brush or trees** in the path: about 10–20 dB.
+- **People or vehicles** between the antennas: about 5–10 dB.
+- **Steel** (the plate or splash shield) directly between the antennas: 20 dB or more. The link may not work at all.
+
+Keep at least **10 dB** of margin for fading and changes from day to day. Under that rule, the estimated limit on flat, open ground is about 2.5 km with antennas 1 m up and about 4 km at 1.5 m. Rolling terrain, berms and vegetation usually limit range well before that, so plan on about 1 km unless your own test shows more.
+
+### 9.3 Antenna height and placement
+
+- **Height matters most.** At 500 m the radio path needs about 6 m of clearance above the ground at its midpoint, the first Fresnel zone. Antennas 1–2 m up can't provide it, so the signal falls off with ground reflections rather than as in free space. In this case, doubling the height of one antenna gains about 6 dB, and doubling both gains about 12 dB. A 2–3 m pole at the firing line is the cheapest range upgrade.
+- **Keep steel out of the path.** The target antenna has to be out of the line of fire, but the plate and shield must not sit between it and the firing line. Mount it above the shield on a short mast, or a few metres to one side behind cover, using a coax run to the board.
+- **Vertical and parallel:** stand both dipoles vertically. A mismatch in angle (polarization) between them can cost 10–20 dB.
+- **Clear of the body and metal:** keep the receiver antenna off the bench and away from vehicles, and not where people stand.
+
+### 9.4 Choosing a spreading factor
+
+- **SF8 (default):** a good balance for 500 m to 1 km.
+- **SF7:** for short ranges with a strong signal (SNR above about +5 dB). It gives faster exchanges and less airtime.
+- **SF9:** gives about 2.5 dB more sensitivity than SF8, for longer or blocked paths. Raising the antenna height usually gains more and doesn't slow down shot reporting.
+- **Transmit power:** raising it from +17 to +20 dBm gains 3 dB, and lowering it to +14 dBm saves battery when there's plenty of margin.
+
+### 9.5 Regional rules
+
+- **US (902–928 MHz):** +17 dBm with ordinary dipoles is well under the 1 W limit, but the operating rules depend on how the device is certified. Check the rules that apply to your setup.
+- **EU (868 MHz):** set `kLoraFreqMHz` to 868. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. Lower `kLoraPowerDbm` to 14 or less to stay within it. At SF8, 1% (36 s of airtime per hour) allows about 300 acknowledged shots per hour, which is ample for normal shooting.
+
+### 9.6 Range test
+
+Before live fire:
+
+1. Set up both boards in their final positions.
+2. At the receiver, type `sim P0` into its serial monitor. The command is relayed to the target, and the target sends back a synthetic shot.
+3. Read the result:
+   - Each shot line from the receiver includes `rssi` and `snr`.
+   - The target's `stats` command shows the counts of sent, acked and failed shots, plus the last RSSI and SNR.
+4. Check whether the link is healthy:
+
+| Check | Healthy link at SF8 |
+| --- | --- |
+| SNR | 0 dB or better, which is at least 10 dB above the −10 dB decode limit |
+| Failed shots | None |
+| RSSI | Above about −115 dBm |
+
+5. Repeat with people standing in their usual positions.
+6. If the margin is thin:
+   - First, raise the antennas.
+   - Then, move to SF9 or a higher transmit power.
 
 ## 10. Safety (read before shooting)
 

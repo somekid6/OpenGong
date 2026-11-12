@@ -29,7 +29,7 @@ Sensor placement from a 3D-printed jig (about ±0.5 mm) and changes in wave spee
 
 ## 3. System architecture
 
-**Signal chain:** piezo sensor → protection + high-pass filter + buffer → threshold comparator → ESP32-S3 hardware capture pin → position solver → LoRa radio (915 MHz) → about 500 m → receiver board → USB or Bluetooth → laptop or phone.
+**Signal chain:** piezo sensor → protection + high-pass filter + buffer → threshold comparator → ESP32-S3 hardware capture pin → position solver → LoRa radio (915 MHz) → about 500 m → receiver board → Wi-Fi web app or USB → phone or laptop.
 
 Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32's built-in ADC is too slow to record these signals usefully, but recording isn't needed at 5 mm.
 
@@ -126,7 +126,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Settings:** SF8, 125 kHz bandwidth, coding rate 4/5, +17 dBm by default (in `OpenGongProto.h`). SF7–9 and +14 to +20 dBm are the design range. Both boards must use the same settings, so reflash both after a change.
 - **Antennas:** replace the stock stubs with proper 915 MHz dipoles. Mount the target antenna 1–2 m up, behind cover and out of the line of fire (see *Antenna height and placement*).
 - **Packet:** a 20-byte shot packet: shot number, x and y (in 0.1 mm units), residual, sensors used, battery level and a checksum. The receiver acknowledges each shot with a 9-byte ACK, and the target resends up to 3 times.
-- **Receiver:** USB serial to a laptop, or Bluetooth to a phone. A simple Python or web app plots the hits, group size and center, and saves each session.
+- **Receiver:** runs its own Wi-Fi network and serves a web app to any phone or laptop that joins it (no internet or cable needed). The app draws the plate to scale (round or rectangular, your size), overlays the hits as bullet-sized holes, offers a ½ MOA, 1 MOA or 0.1 mil grid for the set distance, and shows group centre, extreme spread and mean radius. Shots are stored in the browser, not on the receiver. USB serial JSON is still printed for a laptop. See the [firmware README](../firmware/README.md#web-app).
 
 ### 9.1 Time on air and shot rate
 

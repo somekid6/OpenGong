@@ -3,7 +3,7 @@
 Firmware for the two Heltec WiFi LoRa 32 V3 boards in [the system design](../docs/System-Design.md):
 
 - **target**: behind the plate. It timestamps the five comparator TRIG lines in hardware, solves the impact position and sends it over LoRa.
-- **receiver**: at the firing line. It acknowledges shots, shows the hit and group on its OLED, and prints JSON over USB for a laptop app.
+- **receiver**: at the firing line. It acknowledges shots, shows the hit and group on its OLED, runs a Wi-Fi network with a [web app](#web-app) for your phone or laptop, and prints JSON over USB.
 
 ## Build and flash
 
@@ -17,7 +17,7 @@ pio device monitor                # 115200 baud
 
 The project uses Arduino-ESP32 3.x (ESP-IDF 5) through the pioarduino platform, because the capture code needs the IDF 5 MCPWM capture driver. RadioLib and the ThingPulse SSD1306 library are fetched automatically.
 
-**Before powering either board, attach its antenna.** The default band is 915 MHz (US). For the EU, set `kLoraFreqMHz` to 868 in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h). If two OpenGong systems share a range, give each one its own `-DOG_NET_ID` in [platformio.ini](platformio.ini).
+**Before powering either board, attach its antenna.** The default band is 915 MHz (US). For the EU, set `kLoraFreqMHz` to 868 in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h). If two OpenGong systems share a range, give each one its own `-DOG_NET_ID` in [platformio.ini](platformio.ini), and its own Wi-Fi name with `OG_WIFI_SSID` (the password is `OG_WIFI_PASS`, both in the receiver section of the same file).
 
 ## Layout
 
@@ -31,6 +31,9 @@ The project uses Arduino-ESP32 3.x (ESP-IDF 5) through the pioarduino platform, 
 | [src/target/console.cpp](src/target/console.cpp) | Text commands over USB serial or relayed over LoRa |
 | [src/target/config.cpp](src/target/config.cpp) | Settings stored in flash (NVS) |
 | [src/receiver/main.cpp](src/receiver/main.cpp) | Receiver: ACK, de-duplication, group stats, OLED plot, command relay |
+| [src/receiver/webui.cpp](src/receiver/webui.cpp) | Receiver: Wi-Fi access point, DNS, HTTP API, RAM shot buffer |
+| [src/receiver/web/index.html](src/receiver/web/index.html) | The web app. Open it in a browser with `?demo` to try it without hardware |
+| [tools/embed_web.py](tools/embed_web.py) | Pre-build step: gzips the web app into `src/receiver/web_page.h` |
 | [test/host/solver_sim.cpp](test/host/solver_sim.cpp) | PC test of the solver and calibration (see below) |
 
 ## How the target works
@@ -115,7 +118,31 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `check <pt>` / `check off` | Report each shot's error from a known point |
 | `cal ...` | See [Calibration](#calibration) |
 
-Receiver-only commands: `rx clear` (start a new group), `rx stats` and `rx help`.
+Receiver-only commands: `rx clear` (start a new group, on the OLED and in every connected browser), `rx stats` and `rx help`.
+
+## Web app
+
+The receiver runs its own Wi-Fi network, so no laptop, cable or internet is needed at the firing line.
+
+1. On your phone or laptop, join the Wi-Fi network **OpenGong** (password `opengong`). The name and address are also shown on the receiver's OLED until the first shot arrives.
+2. Open **http://192.168.4.1/** (or `http://opengong.local/`). Any address you type while on that network lands on the app.
+3. Open **Target setup** once and enter your plate: round or rectangular, its size in inches or mm, and your bullet diameter. If the sensor ring isn't centred on the plate, enter the aim point's offset from the plate centre. The target's reported (0, 0) is the sensor ring centre unless you changed it with `set aim`.
+4. Set the **distance** to the target and pick a **grid**: off, ½ MOA, 1 MOA or 0.1 MIL. Squares are drawn at the true size for that distance (1 MOA at 100 yd = 1.047 in; 0.1 mil at 100 m = 10 mm), centred on the aim point.
+
+What you get:
+
+- The plate drawn to scale, each hit as a bullet-sized hole numbered in order, the newest in red. Flagged shots (`high_resid`, `missing_ch`, `dropped_ch`, `outside_ring`) get an amber ring and a note; `sim` shots are dashed; `cal` taps and `no_fix` shots are listed but not plotted.
+- Group centre, extreme spread and mean radius for the shots on screen, in inches or mm and in MOA and mil.
+- **Show last** 10, 20, 50 or all shots. Tap a hit or a table row to highlight it.
+- **Clear shots** starts a new group everywhere: this browser, the receiver's OLED and every other connected browser.
+
+**Where the shots live.** The browser is the store of record: shots (up to 500) and your settings are kept in that browser's local storage, so they survive reloads and receiver reboots, and nothing is written to the receiver's flash. The receiver only keeps the last 64 shots in RAM so a page that was closed or asleep can catch up when it reconnects. If a phone is off the network for more than 64 shots, the earlier ones are missing from that phone. Each phone or laptop has its own history and its own settings. Clearing the browser's site data clears the shots.
+
+**Network notes.** Up to 4 devices can connect. Wi-Fi range from the Heltec's small PCB antenna is roughly 10–30 m, so keep the receiver on the bench. The receiver answers the operating system's "is the internet reachable" checks so that phones stay on the network without nagging; while connected, other apps on that device have no internet. Wi-Fi adds about 100 mA to the receiver's draw, so budget for it on battery. The Heltec's Wi-Fi and LoRa radios are independent, so the web app doesn't affect shot reception.
+
+**API.** The app polls `GET /api/shots?since=<seq>` twice a second. The reply has the receiver's boot id and sequence counter, a clear counter, the target's last-heard status and the buffered shots newer than `seq`, each with the same fields as the serial JSON plus `seq` and `t_ms`. `POST /api/clear` empties the buffer and bumps the clear counter. Shot keys are (`boot`, `n`), the same as the serial de-duplication. Anything else that reads the receiver can use the same two calls.
+
+**Changing the page.** Edit [src/receiver/web/index.html](src/receiver/web/index.html) and rebuild; [tools/embed_web.py](tools/embed_web.py) gzips it into `src/receiver/web_page.h` (generated, not committed) before each receiver build. To work on the page without a receiver, open the file in a browser with `?demo` on the URL: it then invents shots.
 
 ## Serial output
 
@@ -171,4 +198,5 @@ Current result: 200 ns timing scatter gives a 1.1 mm mean and 2.2 mm 95th-percen
 ## Known limits
 
 - **Capture overwrite:** the capture register is read in the interrupt handler. If a comparator chatters with edges less than a few µs apart, a later edge could overwrite the first before it's read. The comparator's hysteresis and the 50 kHz high-pass should prevent this; check on the scope during bring-up.
-- **Not implemented:** peak-detector walk correction (System-Design section 5, optional) and Bluetooth on the receiver. Both are natural next steps if the punch test shows they're needed.
+- **Not implemented:** peak-detector walk correction (System-Design section 5, optional). It's a natural next step if the punch test shows it's needed. Bluetooth on the receiver isn't planned now that the web app covers phones.
+- **Web app history is per browser.** The receiver buffers only the last 64 shots in RAM, so a device that was off the network longer than that misses the earlier shots. An SD card or the receiver's flash would fix that, but neither is used by design.

@@ -4,6 +4,7 @@
 //   shot on USB serial for a laptop app. Lines starting with '{' are JSON;
 //   everything else is human-readable.
 // - Shows the last hit, a hit plot and group size on the OLED.
+// - Runs a Wi-Fi access point and a web app for phones and laptops (webui.cpp).
 // - Any serial line that does not start with "rx " is sent to the target as a
 //   console command, and the target's output is printed back.
 //
@@ -17,6 +18,7 @@
 #include <string.h>
 
 #include "OpenGongProto.h"
+#include "webui.h"
 
 using namespace og;
 using namespace og::heltec;
@@ -97,6 +99,14 @@ void addHit(float x, float y) {
   s_hits[s_nhits++] = {x, y};
 }
 
+// Called when a browser presses "Clear shots"; the web module has already
+// dropped its own copy.
+void onWebClear() {
+  s_nhits = 0;
+  s_dirty = true;
+  Serial.println("rx: group cleared from the web app");
+}
+
 // ---------------------------------------------------------------------------
 // Display: text on the left, hit plot on the right
 // ---------------------------------------------------------------------------
@@ -121,6 +131,9 @@ void draw() {
     s_oled.setFont(ArialMT_Plain_10);
     s_oled.drawString(0, 0, "OpenGong RX");
     s_oled.drawString(0, 14, s_haveStatus ? "target online" : "no target yet");
+    s_oled.drawString(0, 32, "WiFi:");
+    s_oled.drawString(0, 42, webui::ssid());
+    s_oled.drawString(0, 53, webui::ipAddress());
     s_oled.display();
     return;
   }
@@ -188,6 +201,7 @@ void handleShot(const ShotPacket& p, float rssi, float snr) {
 
   const bool fix = !(p.flags & SHOT_NO_FIX);
   if (fix && !(p.flags & (SHOT_CAL | SHOT_SIM))) addHit(p.x_dmm / 10.0f, p.y_dmm / 10.0f);
+  webui::recordShot(p, rssi, snr);
   float mx, my, es;
   groupStats(mx, my, es);
 
@@ -209,6 +223,7 @@ void handleStatus(const StatusPacket& st, float rssi) {
   s_status = st;
   s_haveStatus = true;
   s_statusAt = millis();
+  webui::recordStatus(st, rssi);
   Serial.printf(
       "{\"type\":\"status\",\"boot\":%u,\"shots\":%u,\"rejects\":%u,\"batt_mv\":%u,\"uptime_min\":%u,"
       "\"n_ch\":%u,\"mode\":\"%s\",\"rssi\":%.0f}\n",
@@ -265,6 +280,7 @@ void localCommand(const char* cmd) {
   if (!strcmp(cmd, "clear")) {
     s_nhits = 0;
     s_dirty = true;
+    webui::clearLog();  // connected browsers clear on their next poll
     Serial.println("rx: group cleared");
   } else if (!strcmp(cmd, "stats")) {
     Serial.printf("rx: packets %lu, acks sent %lu, duplicates %lu, hits in group %d\n", (unsigned long)s_rxCount,
@@ -273,11 +289,13 @@ void localCommand(const char* cmd) {
       Serial.printf("rx: last target status %lus ago, boot %u, battery %u mV\n",
                     (unsigned long)((millis() - s_statusAt) / 1000), s_status.boot_id, s_status.batt_mv);
   } else {
-    Serial.println(
+    Serial.printf(
         "rx help   this list\n"
-        "rx clear  start a new group\n"
+        "rx clear  start a new group (also clears the web app)\n"
         "rx stats  link counters\n"
-        "Any other line is sent to the target (try 'help').");
+        "Web app:  join Wi-Fi \"%s\" and open http://%s/\n"
+        "Any other line is sent to the target (try 'help').\n",
+        webui::ssid(), webui::ipAddress());
   }
 }
 
@@ -341,11 +359,13 @@ void setup() {
   s_radio->setDio1Action(onDio1);
   startRx();
   Serial.printf("{\"type\":\"rx_boot\",\"net\":%u,\"freq_mhz\":%.1f,\"sf\":%u}\n", kNetId, kLoraFreqMHz, kLoraSF);
+  webui::begin(onWebClear);
   draw();
 }
 
 void loop() {
   pollRadio();
+  webui::poll();
   pollSerial();
   const uint32_t now = millis();
   if (s_dirty || now - s_lastDraw > 1000) {

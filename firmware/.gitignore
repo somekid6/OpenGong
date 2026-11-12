@@ -2,3 +2,5 @@
 .vscode/
 solver_sim
 solver_sim.exe
+# generated from src/receiver/web/index.html by tools/embed_web.py
+src/receiver/web_page.h

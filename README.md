@@ -12,6 +12,13 @@ Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impa
 
 ![System wiring](docs/images/system-wiring.svg)
 
+The receiver's web app on a phone and a laptop: the plate to scale, numbered hits, an MOA or mil grid and the group statistics.
+
+<p>
+<img src="docs/images/webapp-phone-round.png" width="260" alt="Phone view of the web app: round plate, 1 MOA grid, hits and group statistics">
+<img src="docs/images/webapp-desktop.png" width="560" alt="Laptop view of the web app: round plate at 200 yd with a half-MOA grid and 12 hits">
+</p>
+
 ## Safety
 
 Follow your plate maker's rating for the round you shoot. [System design §10](docs/System-Design.md#10-ammunition-and-safety-read-before-shooting) lists commonly cited plate thicknesses and minimum distances per caliber. Never use steel-core or penetrator rounds. Keep all electronics and cables fully behind the plate under a steel shield.

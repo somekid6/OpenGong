@@ -124,6 +124,8 @@ Receiver-only commands: `rx clear` (start a new group, on the OLED and in every 
 
 The receiver runs its own Wi-Fi network, so no laptop, cable or internet is needed at the firing line.
 
+![The web app on a laptop: a 12 in round plate at 200 yd with a ½ MOA grid, 12 numbered hits, two of them flagged, and the group statistics](../docs/images/webapp-desktop.png)
+
 1. On your phone or laptop, join the Wi-Fi network **OpenGong** (password `opengong`). The name and address are also shown on the receiver's OLED until the first shot arrives.
 2. Open **http://192.168.4.1/** (or `http://opengong.local/`). Any address you type while on that network lands on the app.
 3. Open **Target setup** once and enter your plate: round or rectangular, its size in inches or mm, and your bullet diameter. If the sensor ring isn't centred on the plate, enter the aim point's offset from the plate centre. The target's reported (0, 0) is the sensor ring centre unless you changed it with `set aim`.
@@ -135,6 +137,13 @@ What you get:
 - Group centre, extreme spread and mean radius for the shots on screen, in inches or mm and in MOA and mil.
 - **Show last** 10, 20, 50 or all shots. Tap a hit or a table row to highlight it.
 - **Clear shots** starts a new group everywhere: this browser, the receiver's OLED and every other connected browser.
+
+<p>
+<img src="../docs/images/webapp-phone-round.png" width="300" alt="Phone view, dark theme: 12 in round plate at 100 yd with a 1 MOA grid, 10 hits, stats and the shot table">
+<img src="../docs/images/webapp-phone-rect-setup.png" width="300" alt="Phone view, light theme: 12 x 18 in rectangular plate at 100 m with a 0.1 mil grid, the aim point offset 76.2 mm below the plate centre, and the Target setup panel open">
+</p>
+
+*Left: a round plate at 100 yd with a 1 MOA grid, dark theme. Right: a 12 × 18 in rectangular plate at 100 m with a 0.1 mil grid and the ring 3 in below the plate centre, with Target setup open. Both were captured in demo mode, so the shots are synthetic.*
 
 **Where the shots live.** The browser is the store of record: shots (up to 500) and your settings are kept in that browser's local storage, so they survive reloads and receiver reboots, and nothing is written to the receiver's flash. The receiver only keeps the last 64 shots in RAM so a page that was closed or asleep can catch up when it reconnects. If a phone is off the network for more than 64 shots, the earlier ones are missing from that phone. Each phone or laptop has its own history and its own settings. Clearing the browser's site data clears the shots.
 

@@ -4,7 +4,7 @@ Nov 12, 2026 (wireless range and per-caliber ammunition guidance added; Nov 11: 
 
 ## 1. Summary
 
-The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** (6 optional) bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$80–110**, and the two radio boards are the biggest item.
+The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$80–110**, and the two radio boards are the biggest item.
 
 - **Expected accuracy:** about 1–3 mm typical, inside 5 mm for 95% of hits within the sensor ring. These are estimates; the punch test confirms them.
 - **What sets the accuracy:** large timing mistakes, not timing precision. The ESP32-S3 timestamps to 12.5 ns, far finer than needed. The real risk is a channel triggering on the wrong part of the wave. Section 11 covers how to prevent that.
@@ -98,7 +98,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Model:** each sensor's arrival time = shot time + that channel's fixed delay + path length ÷ wave speed. The path length includes the plate thickness.
 - **Unknowns per shot:** x, y and the shot time. Sensor positions, wave speed and channel delays come from the jig and calibration.
 - **Method:** standard nonlinear least squares (Levenberg–Marquardt), starting near the sensor that fired first. It runs in well under a millisecond on the ESP32-S3, so the target sends finished coordinates.
-- **Quality check:** send the leftover timing error (residual, in ns) with each shot. A large residual flags a bad trigger. With a 6th sensor, the solver can drop the worst channel automatically.
+- **Quality check:** send the leftover timing error (residual, in ns) with each shot. A large residual flags a bad trigger.
 
 ## 8. Calibration
 
@@ -277,7 +277,7 @@ These rules apply to every round:
 | OPA2350 dual op-amp | 3 | $9 |
 | TLV3502 dual comparator (or LMV393 to save money) | 3 | $3–9 |
 | Trim pot, BAV99 diodes, resistors, capacitors | — | $5 |
-| Custom PCB (JLCPCB/PCBWay, 5 pcs) or perfboard | 1 | $5–15 |
+| [Analog board PCB](../hardware/analog-board/README.md) (JLCPCB/PCBWay, 5 pcs) or perfboard | 1 | $5–15 |
 | Shielded cable, connectors, epoxy | — | $10 |
 | 915 MHz dipole antennas | 2 | $10 |
 | Neodymium magnets, filament for jig and cover | — | $5 |
@@ -291,7 +291,7 @@ A cheap USB oscilloscope (about $60–80) is optional but very helpful for seein
 1. **Bench test:** glue 2–3 sensors to a scrap AR500 offcut. Strike it with a center punch and look at the signals with a scope. Confirm the fast first arrival is visible on every sensor.
 2. **Breadboard 2 channels** of the front end. Check that trigger times repeat within about 200 ns for repeated strikes at the same spot.
 3. **Print the jig:** the test bar first, then the ring and the adapter for your plate shape. Test-fit it, then glue the 5 sensors to the real plate (4.1).
-4. **Build the 5-channel board** and write the ESP32-S3 capture and solver firmware.
+4. **Build the 5-channel board** ([order and assemble the PCB](../hardware/analog-board/README.md)) and flash the ESP32-S3 capture and solver firmware.
 5. **Calibrate** with the punch guides and check against the held-out points.
 6. **Add the LoRa link** and receiver app, then range-test at 500 m.
 7. **Live fire** at a rated distance and compare reported positions to the splash marks.

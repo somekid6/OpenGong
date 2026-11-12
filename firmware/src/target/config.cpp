@@ -29,8 +29,6 @@ void configDefaults(Config& c) {
     c.sx[i] = kRing[i][0];
     c.sy[i] = kRing[i][1];
   }
-  c.sx[5] = 0.0f;  // optional 6th sensor: set its real position before use
-  c.sy[5] = 0.0f;
 
   c.speed_mps = 5900.0f;
   c.thick_mm = 9.5f;  // 3/8 in AR500
@@ -49,7 +47,7 @@ bool configValidate(const Config& c, char* why, size_t whyLen) {
     return false;
   };
   if (c.magic != kMagic || c.size != sizeof(Config)) return fail("bad header");
-  if (c.n_ch < 3 || c.n_ch > og::kMaxChannels) return fail("n must be 3-6");
+  if (c.n_ch < 3 || c.n_ch > og::kMaxChannels) return fail("n must be 3-5");
   if (c.min_ch < 3 || c.min_ch > c.n_ch) return fail("minch must be 3..n");
   if (!(c.speed_mps > 500 && c.speed_mps < 20000)) return fail("v out of range");
   if (!(c.thick_mm >= 0 && c.thick_mm < 100)) return fail("h out of range");

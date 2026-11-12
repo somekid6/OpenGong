@@ -54,7 +54,6 @@ One VMID and one VTH serve all five channels. Turn RV1 until the comparators sto
 | `GPIO5` | TRIG3 (U5A) | MCPWM0 capture 2 |
 | `GPIO6` | TRIG4 (U5B) | MCPWM1 capture 0 |
 | `GPIO7` | TRIG5 (U6A) | MCPWM1 capture 1 |
-| `GPIO47` | TRIG6 (optional 6th sensor) | MCPWM1 capture 2 |
 | `GPIO48` | Nothing: leave unconnected | Firmware drives it internally to sync the two MCPWM capture timers |
 | `3V3` | FB1 → +3V3A analog rail | Always-on 3.3 V. Don't use `Ve`; it's switched by GPIO36. |
 | `GND` | Analog board GND (single point) | Star ground; cable shields tie here only. |
@@ -81,5 +80,24 @@ Pins already used on the board, so leave them alone: `GPIO8–14` (SX1262 radio)
 - **Gain and threshold:** if near-impact sensors saturate early and far ones barely trigger, lower gain (Rf 4.7 k = gain 5.7) and lower VTH together.
 - **Optional peak detectors:** to add walk correction later, tap each amplifier output into a diode + 10 nF + 1 M peak hold and read it on a free ADC1 pin.
 - **Before first power-up:** antenna attached, no shorts between 3V3 and GND, and VTH measured with a meter.
+
+## 7. Printed circuit board
+
+[`hardware/analog-board`](../hardware/analog-board/README.md) is a ready-to-order 2-layer PCB of this circuit, with gerbers, BOM, assembly steps and the KiCad project. The Heltec V3 plugs straight into it. Because one board carries five copies of each channel part, the board numbers them per channel:
+
+| This document | On the PCB (channel *n*) |
+| --- | --- |
+| Jn, D1 | Jn (screw terminal), Dn |
+| R1, R2, R3, R4 | Rn1, Rn2, Rn3, Rn4 |
+| Rf, Rg, C1 | Rn5, Rn6, Cn1 |
+| R5 / R6, C2 (VMID) | R1 / R2, C1 |
+| RV1, R7, C3 (VTH) | RV1, R3, C2 |
+| FB1, C4 / C5 (supply) | FB1, C3 / C4 |
+| 100 nF per IC | C101–C106 (U1–U6) |
+| U1–U6 | U1–U6 |
+
+On the PCB, the comparator inputs can't be swapped without cutting tracks. Don't swap the wires at the terminals either; that would put the cable shield on the signal input. If the first arrival goes negative (see Polarity above):
+1. Set VTH a little **below** VMID. The comparator outputs then sit high and fall when the signal dips past VTH.
+2. In `firmware/src/target/capture.cpp`, set `pos_edge = false` and `neg_edge = true` so the capture catches that falling edge.
 
 > **Safety:** all of this hardware, including cables, must sit fully behind the plate under the steel shield. Bullet splash sprays along the plate face.

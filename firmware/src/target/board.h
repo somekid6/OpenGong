@@ -5,9 +5,9 @@
 
 #include "OpenGongProto.h"
 
-// Comparator outputs TRIG1..TRIG6 -> MCPWM capture inputs.
-// Channels 1-3 use MCPWM group 0, channels 4-6 use group 1. Channel 6 is optional.
-constexpr int kTrigPins[og::kMaxChannels] = {2, 4, 5, 6, 7, 47};
+// Comparator outputs TRIG1..TRIG5 -> MCPWM capture inputs.
+// Channels 1-3 use MCPWM group 0, channels 4-5 use group 1.
+constexpr int kTrigPins[og::kMaxChannels] = {2, 4, 5, 6, 7};
 
 // Internal sync line that zeroes both MCPWM capture timers at the same
 // instant, so timestamps from the two groups share one time base. The

@@ -35,7 +35,7 @@ The project uses Arduino-ESP32 3.x (ESP-IDF 5) through the pioarduino platform, 
 
 ## How the target works
 
-1. **Capture.** Channels 1–3 run on MCPWM group 0 and channels 4–6 on group 1, with pins as in the [wiring diagram](../docs/Wiring-Diagram.md#4-heltec-v3-connections): GPIO 2, 4, 5, 6, 7, plus 47 for an optional 6th channel. The first rising edge on each channel latches the 80 MHz capture timer in hardware, so each timestamp has 12.5 ns resolution with no software delay.
+1. **Capture.** Channels 1–3 run on MCPWM group 0 and channels 4–5 on group 1, with pins as in the [wiring diagram](../docs/Wiring-Diagram.md#4-heltec-v3-connections): GPIO 2, 4, 5, 6 and 7. The first rising edge on each channel latches the 80 MHz capture timer in hardware, so each timestamp has 12.5 ns resolution with no software delay.
 2. **Timer sync.** Each MCPWM group has its own capture timer. Before every arm, the firmware toggles **GPIO48** internally, and that one edge resets both timers to zero at the same instant. **Leave GPIO48 unconnected.**
 3. **Window.** The first edge opens a 200 µs window. When it closes, captures are switched off for the 250 ms hold-off, so the ringing plate doesn't flood the CPU with interrupts. If fewer than `minch` channels (default 4) fired, the event is logged as a reject and the target re-arms after 20 ms.
 4. **Solve.** The solver removes each channel's calibrated delay, then fits x, y and the impact time with Levenberg–Marquardt from three starting points. The model includes plate thickness. If the RMS residual is above `rlim` and at least 5 channels fired, it re-solves without each channel in turn. It keeps a result only if the residual is clearly better, and flags it `dropped_ch`.
@@ -108,7 +108,7 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `set d <ch> <ns>` | Channel delay (normally set by `cal apply`) |
 | `set v <m/s>` / `set h <mm>` | Wave speed / plate thickness |
 | `set aim <x> <y>` / `set flip <fx> <fy>` | Reported origin / axis mirroring |
-| `set n <3-6>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
+| `set n <3-5>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
 | `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window / hold-off / residual flag limit |
 | `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved |
 | `sim <pt> [noise_ns]` | Inject a synthetic hit (`<pt>` = `<x> <y>` or a guide name such as `P2`) |

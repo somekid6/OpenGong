@@ -9,7 +9,7 @@
 
 namespace og {
 
-constexpr int kSolverMaxCh = 6;
+constexpr int kSolverMaxCh = 5;
 
 // Sensor layout and plate model.
 struct Geometry {

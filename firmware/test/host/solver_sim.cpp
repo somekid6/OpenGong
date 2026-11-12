@@ -145,22 +145,13 @@ int main() {
   // ---- 3. Bad trigger handling ------------------------------------------
   printf("\nBad trigger (one channel 8 us late, as if it caught the slow wave):\n");
   {
-    Geometry g6 = g;
-    g6.n = 6;
-    g6.x[5] = 152.4;  // 6th sensor near the centre-bottom of the ring
-    g6.y[5] = 40;
     double t[kSolverMaxCh];
-    predictArrivals(g6, 130, 170, 3.0, t);
+    predictArrivals(g, 130, 170, 3.0, t);
     t[2] += 8.0;
-    bool dropped5 = false, dropped6 = false;
+    bool dropped5 = false;
     Fix f5 = solveRobust(g, t, 0x1F, 500, &dropped5);
-    Fix f6 = solveRobust(g6, t, 0x3F, 500, &dropped6);
     printf("  5 ch: err %.1f mm, rms %.0f ns, dropped=%d\n", hypot(f5.x - 130, f5.y - 170), f5.rms_ns, dropped5);
-    printf("  6 ch: err %.1f mm, rms %.0f ns, dropped=%d used=0x%02X\n", hypot(f6.x - 130, f6.y - 170), f6.rms_ns,
-           dropped6, f6.used);
     expect(dropped5 || f5.rms_ns > 500, "5 ch: bad shot is either repaired or flagged by its residual");
-    expect(dropped6 && f6.used == (0x3F & ~0x04) && hypot(f6.x - 130, f6.y - 170) < 0.1,
-           "6 ch: bad channel 3 dropped and position recovered");
   }
 
   // ---- 4. 120 mm jig ring, back-face punch calibration (System-Design 4.1 / 8) ----

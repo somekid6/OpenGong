@@ -12,7 +12,7 @@
 
 namespace og {
 
-constexpr int kMaxChannels = 6;  // 2 MCPWM groups x 3 capture inputs
+constexpr int kMaxChannels = 5;  // one per jig sensor; MCPWM group 0 takes 3, group 1 takes 2
 
 // ---------------------------------------------------------------------------
 // LoRa PHY settings. Both boards must match.

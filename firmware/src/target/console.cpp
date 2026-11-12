@@ -15,7 +15,7 @@ char s_line[160];
 size_t s_len = 0;
 
 const char kHelp[] =
-    "Commands (mm, front view, origin = ring centre; channels 1-6):\n"
+    "Commands (mm, front view, origin = ring centre; channels 1-5):\n"
     "<pt> = '<x> <y>' or a punch guide P0-P5, H1, H2, H4\n"
     "  show                     print configuration\n"
     "  set s <ch> <x> <y>       sensor position\n"
@@ -24,7 +24,7 @@ const char kHelp[] =
     "  set h <mm>               plate thickness\n"
     "  set aim <x> <y>          point reported as 0,0\n"
     "  set flip <fx> <fy>       mirror reported x/y (0|1)\n"
-    "  set n <3-6>              sensor count (save + reboot)\n"
+    "  set n <3-5>              sensor count (save + reboot)\n"
     "  set minch <n>            channels needed per shot\n"
     "  set win <us> | hold <ms> | rlim <ns>\n"
     "  save | load | defaults | reboot\n"
@@ -37,7 +37,7 @@ const char kHelp[] =
 bool parseCh(const char* s, int& ch, Print& out) {
   ch = s ? atoi(s) : 0;
   if (ch < 1 || ch > og::kMaxChannels) {
-    out.println("error: channel must be 1-6");
+    out.println("error: channel must be 1-5");
     return false;
   }
   ch -= 1;

@@ -12,7 +12,7 @@
 struct Config {
   uint32_t magic;
   uint16_t size;
-  uint8_t  n_ch;            // configured sensor channels (3-6)
+  uint8_t  n_ch;            // configured sensor channels (3-5)
   uint8_t  min_ch;          // channels required to accept a shot
   float    sx[og::kMaxChannels];        // sensor positions, mm
   float    sy[og::kMaxChannels];

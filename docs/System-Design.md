@@ -40,7 +40,7 @@ Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32'
 - **Layout:** 5 sensors evenly spaced on a **120 mm radius** pentagon. A spoke points straight up and sensor S4 sits straight down (back-face view). The scoring zone is inside the ring. A rectangle-only build can use a 140 mm ring (`ring_r = 140`), but it won't fit a 12 in round plate.
 - **Placement jig:** see 4.1. Don't drill or weld the AR500; heat ruins its hardness.
 - **Protective cover:** a separate printed piece with sensor caps, cable channels and foam pads, held to the plate by embedded neodymium magnets. Pot each sensor's solder joints in silicone.
-- **Cabling:** shielded twisted pair or thin coax, under 30 cm from each sensor to the amplifier box behind the plate.
+- **Cabling:** thin 2-core shielded cable with a braided or spiral shield (2-core shielded microphone/instrument cable, 24–28 AWG, about 3–4.5 mm OD), equal lengths under 30 cm from each sensor to the amplifier box behind the plate.
 - **Plate thickness:** the sensors are on the back, so the solver includes the plate thickness in each sensor's path length. Store the thickness per plate in firmware.
 
 ### 4.1 Placement jig (PETG, model: `opengong_jig.scad`)
@@ -278,7 +278,7 @@ These rules apply to every round:
 | TLV3502 dual comparator (or LMV393 to save money) | 3 | $3–9 |
 | Trim pot, BAV99 diodes, resistors, capacitors | — | $5 |
 | [Analog board PCB](../hardware/analog-board/README.md) (JLCPCB/PCBWay, 5 pcs) or perfboard | 1 | $5–15 |
-| Shielded cable, connectors, epoxy | — | $10 |
+| 2-core shielded cable (braided/spiral shield, ~2 m), connectors, epoxy | — | $10 |
 | 915 MHz dipole antennas | 2 | $10 |
 | Neodymium magnets, filament for jig and cover | — | $5 |
 | USB power bank | 1 | $0–20 |

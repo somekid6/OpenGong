@@ -70,7 +70,7 @@ Do this **before** plugging in the Heltec:
 4. Follow the firmware [bring-up and calibration steps](../../firmware/README.md). Raise VTH until the comparators stop firing on noise, then add a little margin ([Wiring Diagram §3](../../docs/Wiring-Diagram.md#3-shared-bias-threshold-and-power)).
 5. TP1–TP5 (AMP1–AMP5) are the amplifier outputs, the best place to watch each sensor with a scope.
 
-Wiring the sensors: each terminal's **left** screw is the signal (piezo ceramic/centre electrode) and the **right** screw is GND (cable shield and brass). Tie each shield at the board end only.
+Wiring the sensors: each terminal's **left** screw is the signal (piezo ceramic/centre electrode) and the **right** screw is GND (cable shield and brass). Tie each shield at the board end only. Use thin 2-core shielded cable, one core for the ceramic and one for the brass; see [Wiring Diagram §6](../../docs/Wiring-Diagram.md#6-wiring-notes) for the cable spec.
 
 ## 5. Design notes
 

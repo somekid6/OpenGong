@@ -14,7 +14,7 @@ Everything except the receiver sits behind the plate under a steel shield. The f
 
 | Ref | Value | Connection |
 | --- | --- | --- |
-| Jn | coax/STP connector | Center → piezo ceramic electrode; shield → AGND (board end only) |
+| Jn | 2-pin screw terminal (2-core shielded cable) | Signal ← core 1 (piezo ceramic electrode); GND ← core 2 (brass) + shield (board end only) |
 | R2 | 1 MΩ | Jn signal → GND (bleed/bias for piezo) |
 | R1 | 10 kΩ | Jn signal → node A (series current limit) |
 | D1 | BAV99 | Node A clamped to +3V3A (top diode) and GND (bottom diode) |
@@ -76,6 +76,7 @@ Pins already used on the board, so leave them alone: `GPIO8–14` (SX1262 radio)
 ## 6. Wiring notes
 
 - **Polarity:** wire every piezo the same way (brass/outer electrode to GND, ceramic/center to the signal). The comparator only detects a rising edge. If the bench scope shows the first arrival goes negative, swap the comparator's + and − inputs on all channels.
+- **Cable:** thin 2-core shielded cable with a braided or spiral shield, 24–28 AWG stranded cores, about 3–4.5 mm outside diameter (sold as 2-core shielded microphone or instrument cable). Core 1 goes to the ceramic, core 2 to the brass, and the shield is left unconnected at the sensor end. Avoid thick industrial CAN/DeviceNet cable: it is stiff enough to stress the sensor joint, and foil shields crack under constant vibration. Plain coax doesn't suit this scheme because its shield would have to carry the brass return. Cut all five cables to the same length, fix each one to the plate or cover a few cm from its sensor, and leave a small slack loop to the disc.
 - **Grounding:** run each cable shield to AGND at its connector only, never at the sensor end. Keep the analog board within 30 cm of the sensors and the Heltec within a few cm of the board.
 - **Gain and threshold:** if near-impact sensors saturate early and far ones barely trigger, lower gain (Rf 4.7 k = gain 5.7) and lower VTH together.
 - **Optional peak detectors:** to add walk correction later, tap each amplifier output into a diode + 10 nF + 1 M peak hold and read it on a free ADC1 pin.

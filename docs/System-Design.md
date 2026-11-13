@@ -37,6 +37,7 @@ Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32'
 
 - **Sensors:** 12–15 mm bare brass piezo discs (about $0.30 each). Smaller discs give a sharper arrival. Buy 20 so you have spares.
 - **Bonding:** sand the steel to bright metal and glue the brass side down with a **thin, rigid** layer of cyanoacrylate or hard-setting epoxy (e.g., JB Weld). Keep foam, tape and plastic out of the path between steel and sensor.
+- **Surface prep:** lightly scuff the disc's brass face with 400–600 grit until the shine is dulled. Keep it flat and gentle, because the disc bends easily, and don't sand the ceramic side or its silvered electrode. Just before gluing, wipe the brass face and the sanded steel with isopropyl alcohol. After that, handle discs by the edge or the ceramic side only. Glue the same day you sand, because bare AR500 starts to oxidise within hours. A clean bond matters because repeated shock slowly works sensors loose (§11).
 - **Layout:** 5 sensors evenly spaced on a **120 mm radius** pentagon. A spoke points straight up and sensor S4 sits straight down (back-face view). The scoring zone is inside the ring. A rectangle-only build can use a 140 mm ring (`ring_r = 140`), but it won't fit a 12 in round plate.
 - **Placement jig:** see 4.1. Don't drill or weld the AR500; heat ruins its hardness.
 - **Protective cover:** a separate printed piece with sensor caps, cable channels and foam pads, held to the plate by embedded neodymium magnets. Pot each sensor's solder joints in silicone.

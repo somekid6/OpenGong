@@ -94,7 +94,7 @@ Add `-D` overrides for any parameters you changed, such as `-D disc_d=12.7`, or 
 
 ## 5. Seat the jig on the plate
 
-Sand the sensor spots on the back face to bright metal first (System Design §4). Then put the jig flat on the back face with the up arrow pointing to the top of the plate as it hangs.
+Sand the sensor spots on the back face to bright metal first, then wipe them with isopropyl alcohol to remove dust and finger oil (System Design §4). Glue the same day you sand. Then put the jig flat on the back face with the up arrow pointing to the top of the plate as it hangs.
 
 **Rectangular plate.** Push the jig down and into the corner until all three stops touch the plate edges: two on the bottom edge and one on the side.
 
@@ -106,6 +106,8 @@ Sand the sensor spots on the back face to bright metal first (System Design §4)
 ## 6. Glue the sensors
 
 Put the glue on the plate **before** the disc goes in. Once a disc is in its pocket there is only about 0.15 mm of clearance around it, so glue can't be worked underneath afterwards.
+
+Prep the discs first. Lightly scuff each disc's brass face with 400–600 grit until it is dull, then wipe it with isopropyl alcohol. Don't sand the ceramic side, and from then on handle the disc only by its edge or ceramic side (System Design §4).
 
 1. With the jig seated, put a **small** dot of CA or hard-setting epoxy on the bare metal at the centre of the pocket. Reach in through the bore with a toothpick or needle.
 2. Drop the piezo disc into its pocket, brass side down. Three ribs centre it.

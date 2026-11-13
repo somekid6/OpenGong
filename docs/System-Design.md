@@ -75,6 +75,39 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 4. Glue the discs through the pockets. Let the glue cure, then lift the jig off.
 5. Leave the jig on (or re-seat it) for the punch calibration in section 8.
 
+### 4.2 Mounting and enclosure
+
+**Split the target end into two parts.** The electronics box moves with the plate. The battery and antenna stay on a fixed post off to one side, behind cover.
+
+**Why the box moves with the plate.** Don't mount it on a post behind the target:
+
+- **Cable length:** the sensor cables must be equal and under 30 cm, and about half of that is used up on the plate. A post would have to stand within about 10–15 cm of the plate's back, and a chained plate swings further than that on a rifle hit.
+- **Flexing:** all five sensor cables would bend across a moving gap on every hit and fatigue at the solder joints.
+- **Misses:** anything standing behind the target is in the line of fire. A box tucked inside the plate's outline, as seen from the firing line, is covered by the plate.
+
+**Don't hang it loose on the chain.** A dangling box swings on its own and knocks against the plate. Any contact with the steel sends a real high-frequency wave that the 50 kHz high-pass filter passes, and the system records it as a phantom shot.
+
+**Mounting the box:**
+
+- **Bracket:** hang a short steel or aluminum flat-bar bracket from the **same hanger bolt(s) as the chains**, with rubber washers or bushings at the joint. Isolating the box doesn't affect timing, which comes only from the sensors bonded to the steel.
+- **Clearance:** hold the box **3–5 cm off the back face** so it can never touch the plate, even mid-swing.
+- **Position:** center the box below the hanger and inside the plate's outline as seen from the firing line. Cover it with the steel shield (section 10.4) and route the cables down and back.
+- **Not on the cover:** don't hang the box from the magnetic sensor cover. The plate face takes the most violent shock, and the magnets will slip.
+
+**Fixed post, to one side and behind cover:**
+
+- **Antenna:** put it on a 1–2 m mast (section 9.3). Run flexible coax such as RG316 to the box, with a slack loop where it crosses to the swinging part. An antenna on the box would sit behind the plate, and steel in the path costs 20 dB or more (section 9.2).
+- **Power bank:** keep it in its own small weatherproof box, with a slack loop in the power cable. A single power cable tolerates flexing far better than the sensor cables do. Don't put a LiPo on the swinging assembly, because a fragment hit on a lithium pouch can start a fire.
+
+**Enclosure:**
+
+- **Box:** an IP65/IP67 polycarbonate or ABS junction box, about 120×90×60 mm, with mounting flanges outside the seal.
+- **Cable glands, bottom face only,** so water drips off instead of running in. Use M12/PG7 glands for 3–6.5 mm cable, or one M20 gland with a multi-hole insert for all five sensor cables. Leave a drip loop on each cable.
+- **Antenna feed:** a bulkhead SMA with an O-ring, on a U.FL-to-SMA pigtail.
+- **Vent and desiccant:** fit an ePTFE breather vent (M12) and add a silica gel pack. A sealed box that heats and cools every day pulls humid air past its gaskets, and the condensation does more damage than rain.
+- **Shock-proofing:** screw the analog board to standoffs and zip-tie or clip the Heltec into its header. Glue the U.FL connector down with hot glue or RTV, since it pops off under repeated shock. Conformal-coat both boards and pad empty space with foam.
+- **Display:** a clear lid lets you read the OLED and status LED. Without one, the receiver's web app shows everything you need.
+
 ## 5. Analog front end (per channel)
 
 1. **Protection:** a 10 kΩ series resistor and BAV99 clamp diodes to the supply rails, plus a 1 MΩ bias resistor. Piezos can produce over 100 V on impact.
@@ -259,6 +292,7 @@ These rules apply to every round:
 - **Angle:** hang the plate with its face tilted 15–20° downward to send bullet splash into the ground. The coordinates are in the plate's own plane, so tilt doesn't affect them.
 - **Splash protection:** bullet fragments spray outward along the plate face. Keep **all electronics and cables fully behind the plate** under a steel shield such as 1/4 in steel angle, and route cables down and back.
 - **Hanging:** chains or straps are fine. Rubber-isolated hangers shorten ringing and allow a faster re-arm.
+- **Electronics:** hang the box from the plate's hanger hardware, clear of the back face, and put the battery and antenna on a fixed post to one side (section 4.2).
 
 ## 11. Main risks and fixes
 
@@ -282,7 +316,9 @@ These rules apply to every round:
 | 915 MHz dipole antennas | 2 | $10 |
 | Neodymium magnets, filament for jig and cover | — | $5 |
 | USB power bank | 1 | $0–20 |
-| **Total** | | **~$80–110** (plus power bank and steel shield) |
+| IP65/IP67 enclosure (~120×90×60 mm), cable glands, breather vent, bulkhead SMA pigtail, desiccant (section 4.2) | — | $20–30 |
+| Small weatherproof box for the power bank, flat bar and rubber washers for the box bracket | — | $10–15 |
+| **Total** | | **~$110–155** (plus power bank, steel shield and antenna mast) |
 
 A cheap USB oscilloscope (about $60–80) is optional but very helpful for seeing the sensor signals during bring-up.
 

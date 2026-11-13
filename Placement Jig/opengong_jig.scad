@@ -15,7 +15,7 @@ part = "assembly"; // [assembly, segment, hub, rect_bottom, rect_side, round_top
 segment_index = 0;      // [0:4]  S1..S5 = segment 0..4
 preview_plate = "round"; // [round, rect]
 
-/* [Sensor discs] */
+/* [Piezo discs] */
 disc_d = 15;            // brass disc diameter
 disc_clear = 0.15;      // radial clearance disc-to-bump
 bump_h = 0.6;           // how far each locating bump stands proud of the bore

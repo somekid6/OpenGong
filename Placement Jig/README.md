@@ -108,7 +108,7 @@ Sand the sensor spots on the back face to bright metal first (System Design §4)
 Put the glue on the plate **before** the disc goes in. Once a disc is in its pocket there is only about 0.15 mm of clearance around it, so glue can't be worked underneath afterwards.
 
 1. With the jig seated, put a **small** dot of CA or hard-setting epoxy on the bare metal at the centre of the pocket. Reach in through the bore with a toothpick or needle.
-2. Drop the disc into its pocket, brass side down. Three ribs centre it.
+2. Drop the piezo disc into its pocket, brass side down. Three ribs centre it.
 3. Press on the disc through the 10 mm boss so the glue spreads into a thin, rigid layer (System Design §4).
 4. Keep the dot small. A 0.8 mm chamfer at the bottom of each pocket catches a little squeeze-out so it can't lock the jig to the plate, but too much glue can reach the ribs or the jig's underside.
 5. CA can set before all five discs are pressed. Glue one pocket at a time, or use a slower epoxy (e.g. JB Weld) for more working time.
@@ -162,7 +162,7 @@ These are the firmware defaults. The firmware also accepts the point names direc
 
 | Group | Parameter (default) | Meaning |
 | --- | --- | --- |
-| Sensor discs | `disc_d` (15), `disc_clear` (0.15) | Disc diameter; radial clearance between the disc and the ribs |
+| Piezo discs | `disc_d` (15), `disc_clear` (0.15) | Piezo disc diameter; radial clearance between the disc and the ribs |
 | | `bump_h` (0.6), `bump_d` (2) | How far the 3 locating ribs stand proud of the bore; rib diameter |
 | | `boss_wall` (4.5), `boss_h` (10) | Pocket boss wall thickness and height |
 | | `glue_chamfer` (0.8) | Squeeze-out relief at the plate face |

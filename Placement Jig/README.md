@@ -105,10 +105,14 @@ Sand the sensor spots on the back face to bright metal first (System Design §4)
 
 ## 6. Glue the sensors
 
-1. Drop each disc into its pocket, brass side down. Three ribs centre it with about 0.15 mm clearance.
-2. Glue it with a thin, rigid layer of CA or hard-setting epoxy (System Design §4). Press on the disc through the 10 mm boss.
-3. A 0.8 mm chamfer at the bottom of each pocket catches glue squeeze-out so it can't lock the jig to the plate.
-4. Let the glue cure, then lift the jig straight off over the sensor leads. Solder the leads afterwards, or keep them clear of the boss while lifting.
+Put the glue on the plate **before** the disc goes in. Once a disc is in its pocket there is only about 0.15 mm of clearance around it, so glue can't be worked underneath afterwards.
+
+1. With the jig seated, put a **small** dot of CA or hard-setting epoxy on the bare metal at the centre of the pocket. Reach in through the bore with a toothpick or needle.
+2. Drop the disc into its pocket, brass side down. Three ribs centre it.
+3. Press on the disc through the 10 mm boss so the glue spreads into a thin, rigid layer (System Design §4).
+4. Keep the dot small. A 0.8 mm chamfer at the bottom of each pocket catches a little squeeze-out so it can't lock the jig to the plate, but too much glue can reach the ribs or the jig's underside.
+5. CA can set before all five discs are pressed. Glue one pocket at a time, or use a slower epoxy (e.g. JB Weld) for more working time.
+6. Let the glue cure, then lift the jig straight off over the sensor leads. Solder the leads afterwards, or keep them clear of the boss while lifting.
 
 Keep the jig: it goes back on for calibration.
 

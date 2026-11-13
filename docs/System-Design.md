@@ -72,7 +72,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 1. Print a 200 mm test bar (`part = "test_bar"`), measure it and scale the model to correct shrinkage.
 2. Print the 5 ring segments and the hub with the flat face down. Print the adapters for your plate; they export already flipped so they print without supports.
 3. Assemble the ring on a flat surface, add the adapter and seat it on the sanded back face.
-4. Glue the discs through the pockets. Let the glue cure, then lift the jig off.
+4. Glue the discs through the pockets: put a small dot of glue on the plate in each pocket first, then drop the disc in and press it through the boss. Let the glue cure, then lift the jig off.
 5. Leave the jig on (or re-seat it) for the punch calibration in section 8.
 
 ### 4.2 Mounting and enclosure

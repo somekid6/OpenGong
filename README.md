@@ -1,7 +1,5 @@
 # OpenGong — Multilateration Electronic Target
 
-Open source electronic target system for steel targets.
-
 Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impacts to within about 5 mm by time-difference-of-arrival multilateration. An ESP32-S3 (Heltec WiFi LoRa 32 V3) timestamps each sensor in hardware, solves the impact position, and sends the coordinates over LoRa to a receiver at the firing line. The link is designed for 500 m, and about 1 km is a realistic planning figure on open ground. The estimated limit is 2–4 km on flat, open ground with clear line of sight. These are link-budget estimates, so [range-test](docs/System-Design.md#96-range-test) your own site. It works with any single-projectile round the plate is rated for, from .22 LR to full-power rifle; shotgun pellets are not supported.
 
 ## Documents

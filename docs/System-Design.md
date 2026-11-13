@@ -2,7 +2,8 @@
 
 Nov 12, 2026 (wireless range and per-caliber ammunition guidance added; Nov 11: jig section revised for one ring on rectangular and round plates)
 
-## 1. Summary
+<details>
+<summary><h2 id="1-summary">1. Summary</h2></summary>
 
 The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$80–110**, and the two radio boards are the biggest item.
 
@@ -10,7 +11,11 @@ The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **
 - **What sets the accuracy:** large timing mistakes, not timing precision. The ESP32-S3 timestamps to 12.5 ns, far finer than needed. The real risk is a channel triggering on the wrong part of the wave. Section 11 covers how to prevent that.
 - **Compared to the reference paper:** Waterman/Salazar aimed for 5 mm and got about 20 mm. This design removes their main error sources: software-polled timing, long unbuffered sensor cables and an unknown wave speed.
 
-## 2. Accuracy budget
+
+</details>
+
+<details>
+<summary><h2 id="2-accuracy-budget">2. Accuracy budget</h2></summary>
 
 Timing scatter is what matters. To stay under 5 mm, each sensor's trigger time needs to be consistent to about **400 ns or better**. The design aims for about 200 ns, which leaves a 2× margin.
 
@@ -27,13 +32,21 @@ Monte Carlo result: 5 sensors on a 140 mm radius pentagon, 3/8 in (9.5 mm) plate
 
 Sensor placement from a 3D-printed jig (about ±0.5 mm) and changes in wave speed with temperature (under 0.5 mm) are small next to these figures. **Fix the wave speed from calibration** rather than solving it on every shot; with 5 sensors, solving it per shot was unreliable in simulation.
 
-## 3. System architecture
+
+</details>
+
+<details>
+<summary><h2 id="3-system-architecture">3. System architecture</h2></summary>
 
 **Signal chain:** piezo sensor → protection + high-pass filter + buffer → threshold comparator → ESP32-S3 hardware capture pin → position solver → LoRa radio (915 MHz) → about 500 m → receiver board → Wi-Fi web app or USB → phone or laptop.
 
 Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32's built-in ADC is too slow to record these signals usefully, but recording isn't needed at 5 mm.
 
-## 4. Sensors, harness and mechanical
+
+</details>
+
+<details>
+<summary><h2 id="4-sensors-harness-and-mechanical">4. Sensors, harness and mechanical</h2></summary>
 
 - **Sensors:** 12–15 mm bare brass piezo discs (about $0.30 each). Smaller discs give a sharper arrival. Buy 20 so you have spares.
 - **Bonding:** sand the steel to bright metal and glue the brass side down with a **thin, rigid** layer of cyanoacrylate or hard-setting epoxy (e.g., JB Weld). Keep foam, tape and plastic out of the path between steel and sensor.
@@ -108,7 +121,11 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Shock-proofing:** screw the analog board to standoffs and zip-tie or clip the Heltec into its header. Glue the U.FL connector down with hot glue or RTV, since it pops off under repeated shock. Conformal-coat both boards and pad empty space with foam.
 - **Display:** a clear lid lets you read the OLED and status LED. Without one, the receiver's web app shows everything you need.
 
-## 5. Analog front end (per channel)
+
+</details>
+
+<details>
+<summary><h2 id="5-analog-front-end-per-channel">5. Analog front end (per channel)</h2></summary>
 
 1. **Protection:** a 10 kΩ series resistor and BAV99 clamp diodes to the supply rails, plus a 1 MΩ bias resistor. Piezos can produce over 100 V on impact.
 2. **High-pass filter at about 50 kHz:** removes slow plate bending, stand and chain rattle, and wind noise.
@@ -116,7 +133,11 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 4. **Threshold comparator:** TLV3502 (dual, fast) or a cheaper LMV393, with a little hysteresis. One shared threshold for all channels, set with a trim pot or an ESP32 PWM pin through an RC filter (the ESP32-S3 has no DAC). Set it a few times above the noise floor. A low threshold keeps the trigger close to the true wave arrival.
 5. **Optional peak detector** (diode + capacitor + bleed resistor) read by the ESP32's ordinary ADC after each shot. It records how strong each channel's signal was, so software can correct strong-versus-weak trigger delay if the punch test shows it's needed. It costs a few cents per channel.
 
-## 6. Timing: ESP32-S3 hardware capture
+
+</details>
+
+<details>
+<summary><h2 id="6-timing-esp32-s3-hardware-capture">6. Timing: ESP32-S3 hardware capture</h2></summary>
 
 - The ESP32-S3 has 2 MCPWM units with 3 capture inputs each, so **6 hardware-timestamped inputs** at 12.5 ns resolution. The timestamp is taken by hardware the instant the comparator fires, so there's no software delay.
 - **Firmware flow:**
@@ -126,14 +147,22 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
     4. Ignore the plate for about 250 ms while it stops ringing, then re-arm.
 - **Missing channel:** if one channel doesn't fire within the window, solve with the rest (the minimum is 4) and flag the shot.
 
-## 7. Solver
+
+</details>
+
+<details>
+<summary><h2 id="7-solver">7. Solver</h2></summary>
 
 - **Model:** each sensor's arrival time = shot time + that channel's fixed delay + path length ÷ wave speed. The path length includes the plate thickness.
 - **Unknowns per shot:** x, y and the shot time. Sensor positions, wave speed and channel delays come from the jig and calibration.
 - **Method:** standard nonlinear least squares (Levenberg–Marquardt), starting near the sensor that fired first. It runs in well under a millisecond on the ESP32-S3, so the target sends finished coordinates.
 - **Quality check:** send the leftover timing error (residual, in ns) with each shot. A large residual flags a bad trigger.
 
-## 8. Calibration
+
+</details>
+
+<details>
+<summary><h2 id="8-calibration">8. Calibration</h2></summary>
 
 1. **Positions:** take sensor coordinates from the jig model, in front-view coordinates with the origin at the ring center. Defaults for the 120 mm ring:
 
@@ -151,7 +180,11 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 5. **Check:** tap the H points. If all of them come out within about 2 mm, you're done.
 6. **Live-fire check:** compare reported positions to the measured centers of the bullet splash marks.
 
-## 9. Wireless link and range
+
+</details>
+
+<details>
+<summary><h2 id="9-wireless-link-and-range">9. Wireless link and range</h2></summary>
 
 **Summary:** the design range is **500 m**. With the default settings and antennas 1–2 m off the ground, the estimated link margin at 500 m over open ground is about **40 dB**, enough for a reliable link with room for brush and people in the path. On flat, open ground the estimated limit is **2–4 km**. These figures come from the link budget below, not from field tests; range-test before relying on them.
 
@@ -243,7 +276,11 @@ Before live fire:
    - First, raise the antennas.
    - Then, move to SF9 or a higher transmit power.
 
-## 10. Ammunition and safety (read before shooting)
+
+</details>
+
+<details>
+<summary><h2 id="10-ammunition-and-safety-read-before-shooting">10. Ammunition and safety (read before shooting)</h2></summary>
 
 The system works with any single-projectile round the plate is rated for. It times the stress wave an impact sends through the steel, and that works the same way for every cartridge. The calibration taps come from a hand center punch, which hits far softer than any bullet. If the punch taps register on every channel, bullets will too. These conclusions follow from the design; they haven't been checked with live fire yet.
 
@@ -294,7 +331,11 @@ These rules apply to every round:
 - **Hanging:** chains or straps are fine. Rubber-isolated hangers shorten ringing and allow a faster re-arm.
 - **Electronics:** hang the box from the plate's hanger hardware, clear of the back face, and put the battery and antenna on a fixed post to one side (section 4.2).
 
-## 11. Main risks and fixes
+
+</details>
+
+<details>
+<summary><h2 id="11-main-risks-and-fixes">11. Main risks and fixes</h2></summary>
 
 - **Triggering on different waves (biggest risk):** an impact sends a weak fast wave and a strong slow wave through the plate. If near sensors catch the fast wave and far sensors only the slow one, a shot can be off by centimeters. Fixes: a low threshold, enough gain that every channel catches the fast wave, and the residual check to flag shots where this happens.
 - **Strong-versus-weak trigger delay:** a weak signal crosses the threshold a little later than a strong one. At 5 mm this should stay within budget; if not, add the peak-detector correction (section 5).
@@ -302,7 +343,11 @@ These rules apply to every round:
 - **Sensor debonding** from repeated shock: watch each channel's residuals over time and re-glue a sensor whose numbers drift.
 - **Plate cratering:** damage changes how waves travel locally. Inspect the plate and replace it when worn.
 
-## 12. Bill of materials (approximate)
+
+</details>
+
+<details>
+<summary><h2 id="12-bill-of-materials-approximate">12. Bill of materials (approximate)</h2></summary>
 
 | Item | Qty | ~Cost |
 | --- | --- | --- |
@@ -322,7 +367,11 @@ These rules apply to every round:
 
 A cheap USB oscilloscope (about $60–80) is optional but very helpful for seeing the sensor signals during bring-up.
 
-## 13. Build plan
+
+</details>
+
+<details>
+<summary><h2 id="13-build-plan">13. Build plan</h2></summary>
 
 1. **Bench test:** glue 2–3 sensors to a scrap AR500 offcut. Strike it with a center punch and look at the signals with a scope. Confirm the fast first arrival is visible on every sensor.
 2. **Breadboard 2 channels** of the front end. Check that trigger times repeat within about 200 ns for repeated strikes at the same spot.
@@ -331,3 +380,5 @@ A cheap USB oscilloscope (about $60–80) is optional but very helpful for seein
 5. **Calibrate** with the punch guides and check against the held-out points.
 6. **Add the LoRa link** and receiver app, then range-test at 500 m.
 7. **Live fire** at a rated distance and compare reported positions to the splash marks.
+
+</details>

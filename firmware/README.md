@@ -127,7 +127,6 @@ Receiver-only commands: `rx clear` (start a new group, on the OLED and in every 
 
 The receiver runs its own Wi-Fi network, so no laptop, cable or internet is needed at the firing line.
 
-![The web app on a laptop: a 12 in round plate at 200 yd with a ½ MOA grid, 12 numbered hits, two of them flagged, and the group statistics](../docs/images/webapp-desktop.png)
 
 1. On your phone or laptop, join the Wi-Fi network **OpenGong** (password `opengong`). The name and address are also shown on the receiver's OLED until the first shot arrives.
 2. Open **http://192.168.4.1/** (or `http://opengong.local/`). Any address you type while on that network lands on the app.
@@ -148,12 +147,27 @@ What you get:
 
   **Edit values by hand** sets the wave speed, plate thickness, aim point, channel delays and sensor positions directly, then saves them on the target. Check taps are listed as `cal check` and kept out of the group. The wizard uses the default jig's guide names, so a modified jig still needs the serial console.
 
+<details>
+<summary>Screenshot: the web app on a laptop</summary>
+
+![The web app on a laptop: a 12 in round plate at 200 yd with a ½ MOA grid, 12 numbered hits, two of them flagged, and the group statistics](../docs/images/webapp-desktop.png)
+
+</details>
+
+<details>
+<summary>Screenshots: phone views of a round and a rectangular plate</summary>
+
 <p>
 <img src="../docs/images/webapp-phone-round.png" width="300" alt="Phone view, dark theme: 12 in round plate at 100 yd with a 1 MOA grid, 10 hits, stats and the shot table">
 <img src="../docs/images/webapp-phone-rect-setup.png" width="300" alt="Phone view, light theme: 12 x 18 in rectangular plate at 100 m with a 0.1 mil grid, the aim point offset 76.2 mm below the plate centre, and the Target setup panel open">
 </p>
 
 *Left: a round plate at 100 yd with a 1 MOA grid, dark theme. Right: a 12 × 18 in rectangular plate at 100 m with a 0.1 mil grid and the ring 3 in below the plate centre, with Target setup open. Both were captured in demo mode, so the shots are synthetic.*
+
+</details>
+
+<details>
+<summary>Screenshots: calibrating from a phone</summary>
 
 <p>
 <img src="../docs/images/webapp-phone-calibration-tap.png" width="300" alt="Phone view, dark theme: the calibration wizard on guide P2 of 6, with a jig diagram seen from the back, P0 and P1 done, P2 highlighted and two taps listed">
@@ -162,13 +176,20 @@ What you get:
 
 *Calibration from a phone. Left: tapping guide P2, with the jig drawn as you see it from behind the plate. Right: the fit result before it's applied and checked. Both were captured in demo mode against a simulated target.*
 
+</details>
+
 **Signal range test.** The **Signal range test** panel runs the pre-fire link check from [System Design §9.6](../docs/System-Design.md#96-signal-range-test). It sends `sim P0` to the target 5, 10 or 20 times and collects each synthetic shot's RSSI and SNR at the receiver. It also reads `stats` before and after, for the target's sent, acked and failed counts and the signal it last heard from the receiver. It then marks each result against the healthy-link limits for SF8. Signal range test shots are listed in the table as "sim, signal range test" but aren't plotted or counted in the group. Tap any plotted hit to see its RSSI and SNR.
 
-<p align="center">
+<details>
+<summary>Screenshot: the signal range test result</summary>
+
+<p>
 <img src="../docs/images/webapp-phone-signal-range-test.png" width="300" alt="Phone view, dark theme: the Signal range test panel after a 10-shot test, with a warning not to fire real shots, and a results table showing 10 of 10 received, no failed shots, worst SNR +3.2 dB and worst RSSI −102 dBm, all marked healthy">
 </p>
 
 *The signal range test after 10 shots, captured in demo mode against a simulated target.*
+
+</details>
 
 **Where the shots live.** The browser is the store of record: shots (up to 500) and your settings are kept in that browser's local storage, so they survive reloads and receiver reboots, and nothing is written to the receiver's flash. The receiver only keeps the last 64 shots in RAM so a page that was closed or asleep can catch up when it reconnects. If a phone is off the network for more than 64 shots, the earlier ones are missing from that phone. Each phone or laptop has its own history and its own settings. Clearing the browser's site data clears the shots.
 

@@ -226,7 +226,9 @@ Keep at least **10 dB** of margin for fading and changes from day to day. Under 
 Before live fire:
 
 1. Set up both boards in their final positions.
-2. At the receiver, type `sim P0` into its serial monitor. The command is relayed to the target, and the target sends back a synthetic shot.
+2. Send synthetic shots. The target simulates these shots itself and sends them over the radio, as it would a real hit. **Don't fire real shots for this test.** Nobody needs to be near the plate, and it should stay clear. Send them from either:
+   - **The web app:** open **Range test**, pick the number of shots and press **Run range test**. It does steps 3 and 4 for you and marks each result against the table below.
+   - **The serial monitor:** at the receiver, type `sim P0`. The command is relayed to the target, and the target sends back a synthetic shot.
 3. Read the result:
    - Each shot line from the receiver includes `rssi` and `snr`.
    - The target's `stats` command shows the counts of sent, acked and failed shots, plus the last RSSI and SNR.

@@ -14,10 +14,15 @@ Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impa
 
 The receiver's web app on a phone and a laptop: the plate to scale, numbered hits, an MOA or mil grid and the group statistics. It can also walk you through calibrating the target from your phone ([firmware README](firmware/README.md#web-app)).
 
+<details>
+<summary>Web app screenshots</summary>
+
 <p>
 <img src="docs/images/webapp-phone-round.png" width="260" alt="Phone view of the web app: round plate, 1 MOA grid, hits and group statistics">
 <img src="docs/images/webapp-desktop.png" width="560" alt="Laptop view of the web app: round plate at 200 yd with a half-MOA grid and 12 hits">
 </p>
+
+</details>
 
 ## Safety
 

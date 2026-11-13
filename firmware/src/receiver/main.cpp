@@ -6,7 +6,9 @@
 // - Shows the last hit, a hit plot and group size on the OLED.
 // - Runs a Wi-Fi access point and a web app for phones and laptops (webui.cpp).
 // - Any serial line that does not start with "rx " is sent to the target as a
-//   console command, and the target's output is printed back.
+//   console command, and the target's output is printed back. The web app can
+//   send commands the same way (POST /api/cmd); that is how its calibration
+//   wizard drives the target.
 //
 // Receiver-local commands: rx help | rx clear | rx stats
 #include <Arduino.h>
@@ -235,6 +237,7 @@ void handleResp(const uint8_t* buf, size_t len) {
   uint8_t seq, part;
   char text[kMaxText + 1];
   if (!parseText(buf, len, seq, part, text, sizeof text)) return;
+  webui::recordResponse(seq, part, text);
   // Raw text so a human can follow along; apps ignore non-JSON lines.
   Serial.print(text);
   if ((part & kPartLast) && len > kTextOverhead && text[strlen(text) - 1] != '\n') Serial.println();
@@ -299,11 +302,24 @@ void localCommand(const char* cmd) {
   }
 }
 
-void sendCommand(const char* text) {
+uint8_t transmitCommand(const char* text) {
   uint8_t buf[kMaxPacket];
-  const size_t len = buildText(buf, PKT_CMD, ++s_cmdSeq, kPartLast, text, strlen(text));
+  const uint8_t seq = ++s_cmdSeq;
+  const size_t len = buildText(buf, PKT_CMD, seq, kPartLast, text, strlen(text));
   tx(buf, len);
+  return seq;
+}
+
+void sendCommand(const char* text) {
+  transmitCommand(text);
   Serial.printf("> [to target] %s\n", text);
+}
+
+// Commands from the web app (calibration wizard and value editor).
+uint8_t sendWebCommand(const char* text) {
+  const uint8_t seq = transmitCommand(text);
+  Serial.printf("> [web to target] %s\n", text);
+  return seq;
 }
 
 void pollSerial() {
@@ -359,7 +375,7 @@ void setup() {
   s_radio->setDio1Action(onDio1);
   startRx();
   Serial.printf("{\"type\":\"rx_boot\",\"net\":%u,\"freq_mhz\":%.1f,\"sf\":%u}\n", kNetId, kLoraFreqMHz, kLoraSF);
-  webui::begin(onWebClear);
+  webui::begin(onWebClear, sendWebCommand);
   draw();
 }
 

@@ -69,17 +69,71 @@
   @media (max-width: 480px) {  /* phones: tighter cells, drop the radius column (the tooltip still shows it) */
     table { font-size: 12px; }
     th, td { padding: 6px 4px; }
-    th:nth-child(4), td:nth-child(4) { display: none; }
+    #tbl th:nth-child(4), #tbl td:nth-child(4) { display: none; }
   }
   th { color: var(--ink3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
   th:first-child, td:first-child, th.l, td.l { text-align: left; }
   td.flag { color: var(--warn); } td.sim { color: var(--ink3); }
   tr.new td { font-weight: 600; }
-  tbody tr { cursor: pointer; }
+  #tbl tbody tr { cursor: pointer; }
   .muted { color: var(--ink3); font-size: 12px; }
   code { font-size: 12px; }
   footer { margin-top: 14px; color: var(--ink3); font-size: 12px; line-height: 1.6; }
   .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
+
+  /* Target calibration */
+  button:disabled { opacity: .4; cursor: default; transform: none; }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .btnrow .spacer { flex: 1; }
+  .msg { font-size: 13px; margin: 8px 0; }
+  .msg.err { color: var(--bad); } .msg.ok { color: var(--ok); }
+  .busy { font-size: 13px; color: var(--ink2); margin: 6px 0; }
+  .busy::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px;
+    border: 2px solid var(--line); border-top-color: var(--ink2); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .vals { font-size: 13px; color: var(--ink2); margin: 4px 0; }
+  .vals b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .warnpill { color: var(--warn); font-weight: 600; }
+  .wiz { border-top: 1px solid var(--line); padding-top: 4px; }
+  .wiz h3 { font-size: 16px; margin: 10px 0 6px; }
+  .wiz p, .wiz li { font-size: 14px; }
+  .wiz ul { padding-left: 20px; margin: 6px 0; }
+  .steps { display: flex; gap: 4px; list-style: none; padding: 0; margin: 10px 0 4px; font-size: 11px; color: var(--ink3);
+    text-transform: uppercase; letter-spacing: .05em; }
+  .steps li { flex: 1; border-top: 3px solid var(--line); padding-top: 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .steps li.done { border-color: var(--ok); color: var(--ink2); }
+  .steps li.cur { border-color: var(--aim); color: var(--ink); font-weight: 600; }
+  .wizgrid { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 6px 16px; align-items: start; }
+  @media (max-width: 520px) { .wizgrid { grid-template-columns: 1fr; } .wizgrid .jigbox { max-width: 220px; margin: 0 auto; } }
+  .jig { width: 100%; height: auto; display: block; }
+  .jig .ring { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 5 5; }
+  .jig .sens { fill: var(--steel-edge); }
+  .jig .g { fill: var(--panel); stroke: var(--ink3); stroke-width: 1.5; }
+  .jig .g.done { fill: var(--ok); stroke: var(--ok); }
+  .jig .g.cur { fill: var(--hit-new); stroke: var(--hit-new); }
+  .jig text { fill: var(--ink2); font: 11px system-ui, sans-serif; text-anchor: middle; }
+  .jig text.cur { fill: var(--ink); font-weight: 700; }
+  .jigcap { font-size: 11px; color: var(--ink3); text-align: center; margin: 2px 0 0; }
+  .count { font-size: 14px; color: var(--ink2); margin: 8px 0 4px; }
+  .count b { font-size: 26px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .count .good { color: var(--ok); } .count .high { color: var(--warn); }
+  ol.taps { margin: 4px 0; padding-left: 22px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  ol.taps li.warn { color: var(--warn); }
+  .opt { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0; }
+  .opt .optl { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chips button { padding: 5px 10px; font-size: 13px; }
+  td.good { color: var(--ok); } td.high { color: var(--warn); }
+  .notice { border-left: 3px solid var(--warn); padding: 2px 0 2px 10px; }
+  pre.raw { font-size: 11px; white-space: pre-wrap; background: var(--bg); padding: 8px; border-radius: 8px; margin: 4px 0 10px; }
+  .man { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; padding: 4px 0; }
+  .man label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink2); }
+  .man .row { display: flex; gap: 6px; } .man .row input { flex: 1; min-width: 0; width: auto; }
+  .man input { width: 100%; }
+  .man label.pos { grid-column: span 2; }
+  .wiz .tblwrap { margin: 4px 0 12px; }
+  details.inner { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 0; margin: 10px 0 0; }
 </style>
 </head>
 <body>
@@ -158,6 +212,28 @@
   <p class="muted">The aim point is where the target reports (0, 0): the sensor ring centre unless you moved it with <code>set aim</code>. The jig's rectangular adapter centres the ring on a 12 &times; 12 in plate by default; if your ring sits off centre, enter the offset here. Settings and shots are kept in this browser, not on the receiver.</p>
 </details>
 
+<details id="calib">
+  <summary>Target calibration</summary>
+  <div class="vals" id="calVals">Values on the target haven't been read yet.</div>
+  <div class="btnrow">
+    <button id="btnWizStart" data-act="wizStart">Start guided calibration</button>
+    <button class="ghost" data-act="read">Read values from target</button>
+  </div>
+  <div class="busy" id="calBusy" hidden></div>
+  <div class="wiz" id="wiz" hidden></div>
+  <details class="inner" id="manual">
+    <summary>Edit values by hand</summary>
+    <div id="manForm"><p class="muted">Read the values from the target first.</p></div>
+    <div class="btnrow">
+      <button data-act="manSend" id="btnManSend">Send changes</button>
+      <button class="ghost" data-act="manSave">Save on target</button>
+      <button class="ghost" data-act="manLoad">Discard unsaved changes</button>
+    </div>
+    <p class="msg" id="manMsg"></p>
+    <p class="muted">Changes are live on the target as soon as they're sent, but are lost when it restarts unless you save them. Plate thickness is used for live fire; calibration taps through the jig ignore it. Commands go over LoRa through the receiver, so each one takes a second or two.</p>
+  </details>
+</details>
+
 <div class="tblwrap">
 <table id="tbl">
   <thead><tr><th>#</th><th>x</th><th>y</th><th>r</th><th>Time</th><th class="l">Notes</th></tr></thead>
@@ -180,8 +256,10 @@
 const $ = id => document.getElementById(id);
 const IN = 25.4, MOA = Math.PI / (180 * 60), MIL01 = 1e-4;
 const DEMO = /[?&]demo/.test(location.search);
-const FLAGS = ['missing_ch', 'high_resid', 'dropped_ch', 'outside_ring', 'no_fix', 'cal', 'sim'];
-const F_NOFIX = 0x10, F_CAL = 0x20, F_SIM = 0x40, F_SUSPECT = 0x01 | 0x02 | 0x04 | 0x08;
+// Bits 0-6 come from the target. Bit 8 is set by this page on check taps during calibration.
+const FLAGS = ['missing_ch', 'high_resid', 'dropped_ch', 'outside_ring', 'no_fix', 'cal', 'sim', '', 'cal_check'];
+const F_MISSING = 0x01, F_RESID = 0x02, F_NOFIX = 0x10, F_CAL = 0x20, F_SIM = 0x40, F_CHECK = 0x100;
+const F_SUSPECT = 0x01 | 0x02 | 0x04 | 0x08;
 const MAX_STORE = 500;
 
 // ---------------------------------------------------------------------------
@@ -233,8 +311,8 @@ function visible() {
   const n = +cfg.showN;
   return n > 0 ? shots.slice(Math.max(0, shots.length - n)) : shots.slice();
 }
-const plottable = s => !(s.flags & (F_NOFIX | F_CAL));
-const scoring = s => !(s.flags & (F_NOFIX | F_CAL | F_SIM));
+const plottable = s => !(s.flags & (F_NOFIX | F_CAL | F_CHECK));
+const scoring = s => !(s.flags & (F_NOFIX | F_CAL | F_CHECK | F_SIM));
 
 // ---------------------------------------------------------------------------
 // Drawing
@@ -373,7 +451,7 @@ function updateStats() {
   $('stMrA').textContent = fmtAng(mr);
 }
 
-const flagNames = f => FLAGS.filter((_, b) => f & (1 << b)).map(x => x.replace('_', ' ')).join(', ');
+const flagNames = f => FLAGS.filter((x, b) => x && f & (1 << b)).map(x => x.replace('_', ' ')).join(', ');
 
 function updateTable() {
   const vis = visible(), tb = $('rows');
@@ -402,13 +480,24 @@ function refresh() { draw(); updateStats(); updateTable(); }
 // Receiver API. The receiver keeps only a short RAM ring buffer; this page is the store of record.
 //   GET  /api/shots?since=<seq>  -> { rxboot, seq, clears, now_ms, target:{...}, shots:[...] }
 //   POST /api/clear              -> { ok, clears }
+//   POST /api/cmd  (c=<line>)    -> { ok, id }      relay a console command to the target
+//   GET  /api/cmd?id=<id>        -> { id, state: pending|done|unknown, text, gap, age_ms }
 // Add ?demo to the URL to run with synthetic shots and no receiver.
 // ---------------------------------------------------------------------------
 let demoSeq = 0, demoClears = 0;
+const demoQueue = [];  // taps from the calibration wizard's "Simulate tap" button
 function demoFetch(since) {
   const now = Math.round(performance.now());
   const out = { rxboot: 777, seq: demoSeq, clears: demoClears, now_ms: now, shots: [],
-    target: { seen: true, age_s: 3, boot: 40211, batt_mv: 4012, rssi: -88, shots: demoSeq, rejects: 1, mode: 'normal', n_ch: 5 } };
+    target: { seen: true, age_s: 3, boot: 40211, batt_mv: 4012, rssi: -88, shots: demoSeq, rejects: 1,
+      mode: demoT.cal.active ? 'cal' : 'normal', n_ch: 5 } };
+  while (demoQueue.length) {
+    const s = demoQueue.shift();
+    demoSeq++;
+    out.shots.push(Object.assign({ seq: demoSeq, boot: 40211, n: demoSeq, rms: 70, fired: 31, used: 31, rssi: -88, snr: 7, t_ms: now }, s));
+    out.seq = demoSeq;
+  }
+  if (out.shots.length || W.step !== 'idle') return Promise.resolve(out);  // no random shots during calibration
   if (Math.random() < 0.25 || (since === 0 && demoSeq === 0)) {
     demoSeq++;
     const a = Math.random() * 2 * Math.PI, rr = 25 * Math.sqrt(Math.random());
@@ -443,7 +532,9 @@ function ingest(d) {
     if (keys.has(key)) continue;
     keys.add(key);
     const idx = (shots.length ? shots[shots.length - 1].idx : 0) + 1;
-    shots.push({ key, idx, boot: s.boot, n: s.n, x: s.x, y: s.y, rms: s.rms, flags: s.flags, at: skew + s.t_ms });
+    const sh = { key, idx, boot: s.boot, n: s.n, x: s.x, y: s.y, rms: s.rms, flags: s.flags, at: skew + s.t_ms };
+    calOnShot(sh);  // the calibration wizard counts taps and marks check taps
+    shots.push(sh);
     changed = true;
   }
   if (d.seq > sync.seq) sync.seq = d.seq;
@@ -546,9 +637,651 @@ cv.addEventListener('pointerdown', e => {
 window.addEventListener('resize', draw);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
 
+// ---------------------------------------------------------------------------
+// Target calibration: a guided wizard and a hand editor. Both type commands
+// into the target's console over LoRa through the receiver (/api/cmd) and
+// read its text replies, the same as the serial console (firmware README).
+// ---------------------------------------------------------------------------
+// Default jig punch guides, front view, mm from the ring centre (Placement Jig README).
+const GUIDES = { P0: [0, 0], P1: [0, 60], P2: [57.06, 18.54], P3: [35.27, -48.54], P4: [-35.27, -48.54],
+  P5: [-57.06, 18.54], H1: [87.5, 28.43], H2: [54.08, -74.43], H4: [-87.5, 28.43] };
+const FIT_PTS = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5'], CHECK_PTS = ['H1', 'H2', 'H4'];
+const DEFAULT_SENSORS = [[-70.53, 97.08], [70.53, 97.08], [114.13, -37.08], [0, -120], [-114.13, -37.08]];
+const MIN_TAPS = 3, GOOD_MM = 2, CMD_TIMEOUT_MS = 7000;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sgn = (v, d = 0) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(d);
+const firstLine = t => (String(t).trim().split('\n')[0] || '(empty reply)');
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+let tcfg = null, tcfgAt = 0;  // the target's configuration from its last 'show'
+let tDirty = false;           // this page changed live values that aren't saved yet
+let busyText = null, manMsg = null;
+
+// ---- Command transport --------------------------------------------------
+// One command at a time. LoRa commands aren't acknowledged, so a missing reply
+// is retried once unless the command isn't safe to repeat (cal undo).
+let cmdChain = Promise.resolve();
+function targetCmd(text, opt = {}) {
+  const go = () => sendCmd(text, opt.retry !== false);
+  const p = cmdChain.then(go, go);
+  cmdChain = p.catch(() => {});
+  return p;
+}
+async function sendCmd(text, retry) {
+  for (let attempt = 0; ; attempt++) {
+    setBusy(text);
+    let reply;
+    try { reply = await cmdOnce(text); } finally { setBusy(null); }
+    if (reply != null) return reply;
+    if (!retry || attempt >= 1) throw new Error(`No reply from the target to "${text}". Check that it's on and in range, then try again.`);
+  }
+}
+async function cmdOnce(text) {  // reply text, or null if none arrived in time
+  if (DEMO) { await sleep(300 + Math.random() * 300); return demoTarget(text); }
+  const r = await fetch('/api/cmd', { method: 'POST', body: new URLSearchParams({ c: text }), cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.ok) throw new Error('Receiver: ' + (d.error || 'HTTP ' + r.status));
+  const t0 = Date.now();
+  while (Date.now() - t0 < CMD_TIMEOUT_MS) {
+    await sleep(250);
+    let g;
+    try { g = await api('/api/cmd?id=' + d.id); } catch (e) { continue; }
+    if (g.state === 'done') return g.text + (g.gap ? '\n[part of the reply was lost]' : '');
+    if (g.state === 'unknown') return null;
+  }
+  return null;
+}
+function expectOk(t) {
+  const m = String(t).match(/^error: (.*)$/m);
+  if (m) throw new Error('Target: ' + m[1]);
+  return t;
+}
+
+// ---- Parsing the target's console output (formats from console.cpp / processor.cpp)
+function parseShow(t) {
+  const c = t.match(/channels (\d+) \(active (\d+)\), minch (\d+)/);
+  const v = t.match(/^v (-?[\d.]+) m\/s\s+h (-?[\d.]+) mm/m);
+  const a = t.match(/^aim (-?[\d.]+) (-?[\d.]+)\s+flip (\d) (\d)/m);
+  if (!c || !v || !a) return null;
+  const s = [];
+  for (const m of t.matchAll(/^\s*s(\d)\s+x\s+(-?[\d.]+)\s+y\s+(-?[\d.]+)\s+delay\s+([+-]?\d+) ns/gm))
+    s[+m[1] - 1] = { x: +m[2], y: +m[3], d: +m[4] };
+  if (s.length < +c[1] || s.some(x => !x)) return null;
+  return { n: +c[1], active: +c[2], minch: +c[3], v: +v[1], h: +v[2], aimX: +a[1], aimY: +a[2],
+    flipX: +a[3], flipY: +a[4], s };
+}
+const guideAt = (x, y) => Object.keys(GUIDES).find(g => Math.abs(GUIDES[g][0] - x) < 0.02 && Math.abs(GUIDES[g][1] - y) < 0.02);
+function parseList(t) {
+  const h = t.match(/cal: (active|stopped), (back|front) face, (\d+) taps/);
+  if (!h) return null;
+  const points = [];
+  for (const m of t.matchAll(/point (\d+) \((-?[\d.]+), (-?[\d.]+)\): (\d+) taps/g))
+    points.push({ no: +m[1], guide: guideAt(+m[2], +m[3]), n: +m[4] });
+  return { active: h[1] === 'active', face: h[2], total: +h[3], points };
+}
+function parseFit(t) {
+  const head = t.match(/fit from (\d+) taps, rms (\d+) ns/);
+  if (!head) {
+    const f = t.match(/fit failed \((\d+) usable taps\)/);
+    return { ok: false, used: f ? +f[1] : 0 };
+  }
+  const v = t.match(/v = (\d+) m\/s/), w = t.match(/worst tap ([\d.]+) mm/);
+  return { ok: true, used: +head[1], rms: +head[2], v: v ? +v[1] : NaN, worst: w ? +w[1] : NaN,
+    implausible: /WARNING/.test(t),
+    delays: [...t.matchAll(/ch(\d) delay ([+-]\d+) ns/g)].map(m => +m[2]),
+    points: [...t.matchAll(/point (\d+): mean ([\d.]+) mm \((\d+) taps\)/g)].map(m => ({ no: +m[1], mean: +m[2], n: +m[3] })) };
+}
+
+// Ring-frame point (front view) -> the shooter frame shots are reported in.
+function toShooter([x, y]) {
+  if (!tcfg) return [x, y];
+  let dx = x - tcfg.aimX, dy = y - tcfg.aimY;
+  if (tcfg.flipX) dx = -dx;
+  if (tcfg.flipY) dy = -dy;
+  return [dx, dy];
+}
+
+async function readConfig() {
+  const t = await targetCmd('show');
+  const c = parseShow(t);
+  if (!c) throw new Error('Could not read the configuration from the target: ' + firstLine(t));
+  tcfg = c; tcfgAt = Date.now();
+  renderVals(); renderManual();
+  return c;
+}
+
+// ---- Wizard state -------------------------------------------------------
+const W = { step: 'idle' };
+function wizReset() {
+  Object.assign(W, { step: 'intro', face: 'back', fitV: true, cur: 0, chk: 0, armed: false, tgtGuide: null,
+    taps: {}, stack: [], ptGuide: {}, fit: null, fitRaw: '', applied: false, saved: false, discarded: false,
+    msg: null, before: null });
+  for (const g of Object.keys(GUIDES)) W.taps[g] = [];
+}
+const wizActive = () => ['tap', 'fit', 'check', 'save'].includes(W.step);
+
+async function run(fn, where = 'wiz') {
+  const set = m => { if (where === 'wiz') W.msg = m; else manMsg = m; };
+  set(null); renderAll();
+  try { await fn(); } catch (e) { set({ kind: 'err', text: e.message || String(e) }); }
+  renderAll();
+}
+
+// A tap or check shot arrived from the target.
+function tapInfo(s, g) {
+  const fix = !(s.flags & F_NOFIX);
+  const [ex, ey] = toShooter(GUIDES[g]);
+  const notes = [];
+  if (!fix) notes.push('no fix');
+  if (s.flags & F_MISSING) notes.push("a sensor didn't trigger");
+  if (s.flags & F_RESID) notes.push('high residual');
+  return { err: fix ? Math.hypot(s.x - ex, s.y - ey) : null, notes };
+}
+function calOnShot(s) {
+  if (W.step === 'tap' && (s.flags & F_CAL) && FIT_PTS.includes(W.tgtGuide)) {
+    W.taps[W.tgtGuide].push(tapInfo(s, W.tgtGuide));
+    W.stack.push(W.tgtGuide);
+    renderWiz();
+  } else if (W.step === 'check' && !(s.flags & (F_CAL | F_SIM)) && CHECK_PTS.includes(W.tgtGuide)) {
+    s.flags |= F_CHECK;  // keep check taps out of the group and off the plot
+    W.taps[W.tgtGuide].push(tapInfo(s, W.tgtGuide));
+    renderWiz();
+  }
+}
+
+// Make the tap counts match the target's own list ('cal list').
+async function reconcile() {
+  const t = await targetCmd('cal list');
+  const l = parseList(t);
+  if (!l) throw new Error('Unexpected reply to "cal list": ' + firstLine(t));
+  if (!l.active) throw new Error('The target is no longer calibrating (did it restart?). Cancel and start again.');
+  const counts = {};
+  W.stack = [];
+  for (const p of l.points) {
+    if (!p.guide) continue;
+    W.ptGuide[p.no] = p.guide;
+    counts[p.guide] = (counts[p.guide] || 0) + p.n;
+    for (let i = 0; i < p.n; i++) W.stack.push(p.guide);
+  }
+  for (const g of FIT_PTS) {
+    const want = counts[g] || 0, a = W.taps[g];
+    if (a.length > want) a.length = want;
+    while (a.length < want) a.push({ err: null, notes: [], unknown: true });
+  }
+}
+
+// ---- Wizard actions -----------------------------------------------------
+async function armTap() {
+  const g = FIT_PTS[W.cur];
+  W.armed = false; renderWiz();
+  const t = expectOk(await targetCmd('cal at ' + g));
+  const m = t.match(/point (\d+) at/);
+  if (!m) throw new Error('Unexpected reply: ' + firstLine(t));
+  W.ptGuide[+m[1]] = g; W.tgtGuide = g; W.armed = true;
+}
+async function armCheck() {
+  const g = CHECK_PTS[W.chk];
+  W.armed = false; renderWiz();
+  const t = expectOk(await targetCmd('check ' + g));
+  if (!/check: each shot/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
+  W.tgtGuide = g; W.armed = true;
+}
+async function doFit() {
+  W.fit = null; renderWiz();
+  const t = await targetCmd(W.fitV ? 'cal fit' : 'cal fit fixv');
+  W.fitRaw = t; W.fit = parseFit(t);
+}
+const allTapped = () => FIT_PTS.every(g => W.taps[g].length >= MIN_TAPS);
+
+const ACTS = {
+  wizStart() { wizReset(); $('calib').open = true; renderWiz(); },
+  face(v) { W.face = v; renderWiz(); },
+  speed(v) { W.fitV = v === 'fit'; renderWiz(); },
+  start: () => run(async () => {
+    W.before = await readConfig();
+    if (W.before.active < 3) throw new Error('The target has fewer than 3 active channels.');
+    const t = expectOk(await targetCmd('cal start' + (W.face === 'front' ? ' front' : '')));
+    if (!/cal: started/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
+    await targetCmd('check off');
+    W.step = 'tap'; W.cur = 0;
+    await armTap();
+  }),
+  arm: () => run(W.step === 'check' ? armCheck : armTap),
+  next: skip => run(async () => {
+    if (W.step === 'tap') {
+      await reconcile();
+      const g = FIT_PTS[W.cur], n = W.taps[g].length;
+      if (!skip && n < MIN_TAPS) throw new Error(`The target has ${plural(n, 'tap')} at ${g}. Tap until it shows at least ${MIN_TAPS}.`);
+      if (W.cur < FIT_PTS.length - 1) { W.cur++; await armTap(); }
+      else { W.step = 'fit'; await doFit(); }
+    } else if (W.step === 'check') {
+      if (W.chk < CHECK_PTS.length - 1) { W.chk++; await armCheck(); }
+      else { expectOk(await targetCmd('check off')); W.tgtGuide = null; W.step = 'save'; }
+    }
+  }),
+  back: () => run(async () => {
+    if (W.step === 'tap' && W.cur > 0) { W.cur--; await armTap(); }
+    else if (W.step === 'check' && W.chk > 0) { W.chk--; await armCheck(); }
+  }),
+  undo: () => run(async () => {
+    let t;
+    try { t = await targetCmd('cal undo', { retry: false }); }
+    catch (e) { await reconcile(); throw new Error('No reply to undo, so the tap counts were re-read from the target. Check the count before undoing again.'); }
+    expectOk(t);
+    const g = W.stack.pop();
+    if (g) W.taps[g].pop();
+    const m = t.match(/(\d+) left/);
+    if (!m || +m[1] !== W.stack.length) await reconcile();
+  }),
+  goto: g => run(async () => { W.step = 'tap'; W.fit = null; W.cur = FIT_PTS.indexOf(g); await armTap(); }),
+  fitnow: () => run(async () => { await reconcile(); W.step = 'fit'; await doFit(); }),
+  refit: () => run(doFit),
+  apply: () => run(async () => {
+    const t = expectOk(await targetCmd('cal apply'));
+    if (!/applied/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
+    W.applied = true; tDirty = true;
+    expectOk(await targetCmd('cal stop'));
+    await readConfig();
+    W.tgtGuide = null; W.step = 'check'; W.chk = 0;
+    await armCheck();
+  }),
+  save: () => run(async () => {
+    const t = expectOk(await targetCmd('save'));
+    if (!/saved/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
+    W.saved = true; tDirty = false; W.step = 'done';
+  }),
+  discard: () => {
+    if (!confirm('Discard the new calibration and go back to the values saved on the target?')) return;
+    run(async () => {
+      expectOk(await targetCmd('load'));
+      tDirty = false; W.applied = false; W.discarded = true;
+      await readConfig();
+      W.step = 'done';
+    });
+  },
+  redo() { wizReset(); renderWiz(); },
+  close() { W.step = 'idle'; renderAll(); },
+  cancel() {
+    if (W.step === 'intro' || W.step === 'done') { W.step = 'idle'; renderAll(); return; }
+    if (!confirm('Stop calibrating? The taps collected so far are discarded.')) return;
+    const restore = W.applied && !W.saved &&
+      confirm('The new values are live on the target but not saved. Restore the saved values? (Cancel keeps the new values until the target restarts.)');
+    run(async () => {
+      try {
+        await targetCmd('check off');
+        await targetCmd('cal stop');
+        if (restore) { expectOk(await targetCmd('load')); tDirty = false; await readConfig(); }
+      } finally { W.step = 'idle'; W.tgtGuide = null; }
+    });
+  },
+  sim: () => demoSimTap(),
+  read: () => run(readConfig, 'man'),
+  manSend: () => run(manualSend, 'man'),
+  manSave: () => run(async () => {
+    const t = expectOk(await targetCmd('save'));
+    if (!/saved/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
+    tDirty = false; manMsg = { kind: 'ok', text: 'Saved on the target.' };
+  }, 'man'),
+  manLoad: () => {
+    if (!confirm('Discard unsaved changes on the target and reload its saved values? If nothing was ever saved, it loads the defaults.')) return;
+    run(async () => {
+      const t = expectOk(await targetCmd('load'));
+      tDirty = false; await readConfig();
+      manMsg = { kind: 'ok', text: /nothing stored/.test(t) ? 'Nothing was saved on the target, so it loaded the defaults.' : 'Reloaded the saved values.' };
+    }, 'man');
+  },
+};
+$('calib').addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]');
+  if (!b || b.disabled) return;
+  const [act, arg] = b.dataset.act.split(':');
+  if (ACTS[act]) ACTS[act](arg);
+});
+
+// ---- Hand editor --------------------------------------------------------
+function renderManual() {
+  const el = $('manForm');
+  if (!tcfg) { el.innerHTML = '<p class="muted">Read the values from the target first.</p>'; return; }
+  const inp = (id, v, step = 'any') => `<input type="number" id="${id}" value="${v}" step="${step}" inputmode="decimal">`;
+  let h = '<div class="man">';
+  h += `<label>Wave speed, m/s${inp('m_v', tcfg.v, 1)}</label>`;
+  h += `<label>Plate thickness, mm${inp('m_h', tcfg.h)}</label>`;
+  h += `<label>Aim point x, y (mm)<span class="row">${inp('m_ax', tcfg.aimX)}${inp('m_ay', tcfg.aimY)}</span></label>`;
+  tcfg.s.forEach((s, i) => {
+    h += `<label>S${i + 1} delay, ns${inp('m_d' + i, s.d, 1)}</label>`;
+  });
+  tcfg.s.forEach((s, i) => {
+    h += `<label class="pos">S${i + 1} position x, y (mm)<span class="row">${inp('m_sx' + i, s.x)}${inp('m_sy' + i, s.y)}</span></label>`;
+  });
+  el.innerHTML = h + '</div>';
+}
+async function manualSend() {
+  if (!tcfg) throw new Error('Read the values from the target first.');
+  const num = id => parseFloat($(id).value);
+  const cmds = [], bad = [];
+  const diff = (id, cur, tol) => { const v = num(id); if (!Number.isFinite(v)) { bad.push(id); return false; } return Math.abs(v - cur) > tol; };
+  if (diff('m_v', tcfg.v, 0.5)) cmds.push(`set v ${num('m_v')}`);
+  if (diff('m_h', tcfg.h, 0.005)) cmds.push(`set h ${num('m_h')}`);
+  if (diff('m_ax', tcfg.aimX, 0.005) | diff('m_ay', tcfg.aimY, 0.005)) cmds.push(`set aim ${num('m_ax')} ${num('m_ay')}`);
+  tcfg.s.forEach((s, i) => {
+    if (diff('m_sx' + i, s.x, 0.005) | diff('m_sy' + i, s.y, 0.005)) cmds.push(`set s ${i + 1} ${num('m_sx' + i)} ${num('m_sy' + i)}`);
+    if (diff('m_d' + i, s.d, 0.5)) cmds.push(`set d ${i + 1} ${num('m_d' + i)}`);
+  });
+  if (bad.length) throw new Error('Some fields are empty or not numbers.');
+  if (!cmds.length) { manMsg = { kind: '', text: 'Nothing changed.' }; return; }
+  let done = 0;
+  try {
+    for (const c of cmds) { expectOk(await targetCmd(c)); done++; tDirty = true; }
+  } finally {
+    if (done) await readConfig().catch(() => {});
+  }
+  manMsg = { kind: 'ok', text: `Sent ${plural(done, 'change')}. They're live now; press Save on target to keep them after a restart.` };
+}
+
+// ---- Rendering ----------------------------------------------------------
+function setBusy(t) { busyText = t; renderBusy(); }
+function renderBusy() {
+  const el = $('calBusy');
+  el.hidden = !busyText;
+  el.textContent = busyText ? `Sending “${busyText}” to the target…` : '';
+  document.querySelectorAll('#calib button[data-act]').forEach(b => {
+    b.disabled = !!busyText || b.dataset.off === '1' ||
+      (wizActive() && (!!b.closest('#manual') || b.dataset.act === 'read'));
+  });
+}
+function renderVals() {
+  const el = $('calVals');
+  if (!tcfg) { el.textContent = "Values on the target haven't been read yet."; return; }
+  const t = new Date(tcfgAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  el.innerHTML = `Wave speed <b>${tcfg.v} m/s</b> · thickness <b>${tcfg.h.toFixed(2)} mm</b> · delays <b>` +
+    tcfg.s.map(s => sgn(s.d)).join(' / ') + ` ns</b> · aim <b>${tcfg.aimX.toFixed(1)}, ${tcfg.aimY.toFixed(1)}</b>` +
+    ` <span class="muted">(read ${t})</span>` + (tDirty ? ' · <span class="warnpill">unsaved changes on the target</span>' : '');
+}
+function renderManMsg() {
+  const el = $('manMsg');
+  el.className = 'msg ' + (manMsg ? manMsg.kind : '');
+  el.textContent = manMsg ? manMsg.text : '';
+}
+function renderAll() { renderWiz(); renderVals(); renderManMsg(); }
+
+const btn = (act, label, o = {}) =>
+  `<button data-act="${act}"${o.ghost ? ' class="ghost"' : ''} data-off="${o.off ? 1 : 0}">${label}</button>`;
+const errClass = mm => mm == null ? '' : mm <= GOOD_MM ? 'good' : 'high';
+const meanErr = taps => { const e = taps.filter(t => t.err != null); return e.length ? e.reduce((a, t) => a + t.err, 0) / e.length : null; };
+
+function jigSvg(cur) {  // the jig as seen from the back face, where it sits: x is mirrored
+  const sens = tcfg ? tcfg.s.map(s => [s.x, s.y]) : DEFAULT_SENSORS;
+  let h = `<svg class="jig" viewBox="-142 -142 284 284" role="img" aria-label="Jig seen from the back, guide ${cur} highlighted">`;
+  h += '<circle class="ring" r="120"/>';
+  h += '<text x="0" y="-128">▲ up</text>';
+  sens.forEach(([x, y], i) => {
+    h += `<rect class="sens" x="${-x - 5}" y="${-y - 5}" width="10" height="10" rx="2"/>`;
+    h += `<text x="${-x}" y="${-y + (y > 0 ? -9 : 19)}">S${i + 1}</text>`;
+  });
+  for (const [g, [x, y]] of Object.entries(GUIDES)) {
+    const cls = g === cur ? 'g cur' : W.taps[g].length >= MIN_TAPS ? 'g done' : 'g';
+    h += g[0] === 'P' ? `<circle class="${cls}" cx="${-x}" cy="${-y}" r="7"/>`
+      : `<rect class="${cls}" x="${-x - 7}" y="${-y - 7}" width="14" height="14"/>`;
+    h += `<text${g === cur ? ' class="cur"' : ''} x="${-x}" y="${-y + 20}">${g}</text>`;
+  }
+  return '<div class="jigbox">' + h + '</svg><p class="jigcap">Seen from the back, as you face the jig</p></div>';
+}
+function tapList(taps, check) {
+  if (!taps.length) return '';
+  return '<ol class="taps">' + taps.map(t => {
+    const what = t.unknown ? 'recorded by the target' : t.err == null ? 'no position' : `${t.err.toFixed(1)} mm from the guide`;
+    const warn = t.notes.length || (!check && t.err != null && t.err > 20);
+    return `<li class="${warn ? 'warn' : ''}">${what}${t.notes.length ? ' · ' + esc(t.notes.join(', ')) : ''}</li>`;
+  }).join('') + '</ol>';
+}
+function stepper() {
+  const names = ['Start', 'Fit taps', 'Fit', 'Check', 'Save'];
+  const at = { intro: 0, tap: 1, fit: 2, check: 3, save: 4, done: 5 }[W.step];
+  return '<ol class="steps">' + names.map((n, i) => `<li class="${i < at ? 'done' : i === at ? 'cur' : ''}">${n}</li>`).join('') + '</ol>';
+}
+function targetWarning() {
+  if (!target || !target.seen) return '<p class="msg err">The target hasn\'t been heard from yet. Switch it on and wait for it to show as online.</p>';
+  if (target.age_s > 90) return `<p class="msg err">The target has been silent for ${fmtAge(target.age_s)}. Check that it's on and in range.</p>`;
+  if (target.mode === 'cal') return '<p class="notice">The target is already in calibration mode, probably from an earlier session. Starting discards its taps.</p>';
+  return '';
+}
+function seg(act, val, opts) {
+  return '<span class="seg">' + opts.map(([v, l]) =>
+    `<button data-act="${act}:${v}" aria-pressed="${v === val}">${l}</button>`).join('') + '</span>';
+}
+
+const STEPS = {
+  intro() {
+    return '<h3>Guided calibration</h3>' +
+      "<p>The target works out the plate's wave speed and each sensor channel's delay from centre-punch taps through the placement jig. Then you check the result on the held-out guides and save it on the target. It takes about 10 minutes.</p>" +
+      '<ul><li>Seat the jig on the <b>back face</b>, with the up arrow at the top of the plate as it hangs.</li>' +
+      `<li>Have the automatic centre punch ready. You'll tap each round guide (P0–P5) ${MIN_TAPS}–5 times, then each square guide (H1, H2, H4).</li>` +
+      '<li>Keep this page open on your phone. Each tap shows up here as the target reports it.</li></ul>' +
+      targetWarning() +
+      '<div class="opt">' +
+      `<span class="optl">Taps strike ${seg('face', W.face, [['back', 'Back face (jig)'], ['front', 'Front face']])}</span>` +
+      `<span class="optl">Wave speed ${seg('speed', W.fitV ? 'fit' : 'keep', [['fit', 'Fit it'], ['keep', 'Keep current']])}</span></div>` +
+      "<p class=\"muted\">This uses the default jig's guide positions. If you moved the guides in the jig model, calibrate from the serial console with numeric points instead.</p>" +
+      '<div class="btnrow">' + btn('start', 'Start') + '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+  },
+  tap() {
+    const g = FIT_PTS[W.cur], taps = W.taps[g], n = taps.length, last = W.cur === FIT_PTS.length - 1;
+    let say;
+    if (W.armed) say = `Fire the centre punch through round guide <b>${g}</b> ${MIN_TAPS}–5 times. Wait for each tap to show up before the next one.`;
+    else if (busyText) say = "Telling the target which guide is next. Don't tap yet.";
+    else say = "The target hasn't confirmed this guide yet. Don't tap until it does.";
+    let h = '<div class="wizgrid">' + jigSvg(g) + '<div>' +
+      `<h3>Guide ${g} <span class="muted">· ${W.cur + 1} of ${FIT_PTS.length}</span></h3><p>${say}</p>` +
+      `<div class="count"><b>${n}</b> ${n === 1 ? 'tap' : 'taps'} at ${g}${n < MIN_TAPS ? ` · need ${MIN_TAPS}` : ''}</div>` +
+      tapList(taps, false);
+    if (n) h += '<p class="muted">Distances use the values from before this calibration, so a few mm is normal. If a tap is far off or flagged, it probably slipped: undo it.</p>';
+    h += '</div></div><div class="btnrow">';
+    if (!W.armed && !busyText) h += btn('arm', 'Try again');
+    h += btn('next', last ? 'Fit' : 'Next guide', { off: n < MIN_TAPS || !W.armed });
+    h += btn('undo', 'Undo last tap', { ghost: true, off: W.stack[W.stack.length - 1] !== g });
+    h += btn('back', 'Previous', { ghost: true, off: W.cur === 0 });
+    if (n < MIN_TAPS) h += btn('next:skip', 'Skip guide', { ghost: true });
+    if (!last && allTapped()) h += btn('fitnow', 'Fit now', { ghost: true });
+    if (DEMO) h += btn('sim', 'Simulate tap', { ghost: true, off: !W.armed });
+    return h + '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+  },
+  fit() {
+    const f = W.fit, chips = '<div class="chips">' + FIT_PTS.map(g => btn('goto:' + g, `${g} (${W.taps[g].length})`, { ghost: true })).join('') + '</div>';
+    if (!f) {
+      if (busyText) return '<h3>Fitting</h3><p>The target is fitting the wave speed and channel delays…</p>';
+      return '<h3>Fitting</h3><div class="btnrow">' + btn('refit', 'Try again') + '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+    }
+    if (!f.ok) {
+      return '<h3>The fit failed</h3>' +
+        `<p>The target could use only ${plural(f.used, 'tap')}. The fit needs taps at several spread-out guides, with most sensors triggering on each.</p>` +
+        '<p>Add taps at a guide:</p>' + chips +
+        '<div class="btnrow">' + btn('refit', 'Fit again') + btn('redo', 'Start over', { ghost: true }) + '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+    }
+    const b = W.before;
+    let h = '<h3>Fit result</h3><div class="tblwrap"><table><thead><tr><th class="l"></th><th>Before</th><th>Fitted</th></tr></thead><tbody>';
+    h += `<tr><td class="l">Wave speed</td><td>${b ? b.v + ' m/s' : '—'}</td><td>${f.v} m/s${W.fitV ? '' : ' (kept)'}</td></tr>`;
+    f.delays.forEach((d, i) => { h += `<tr><td class="l">S${i + 1} delay</td><td>${b && b.s[i] ? sgn(b.s[i].d) + ' ns' : '—'}</td><td>${sgn(d)} ns</td></tr>`; });
+    h += '</tbody></table></div>';
+    // Per-guide error after the fit (the target reports per point number; one guide can have several).
+    const per = {};
+    for (const p of f.points) {
+      const g = W.ptGuide[p.no] || 'point ' + p.no, a = per[g] || (per[g] = { sum: 0, n: 0 });
+      a.sum += p.mean * p.n; a.n += p.n;
+    }
+    h += '<div class="tblwrap"><table><thead><tr><th class="l">Guide</th><th>Mean error</th><th>Taps</th></tr></thead><tbody>';
+    let worstMean = 0;
+    for (const [g, a] of Object.entries(per)) {
+      const m = a.sum / a.n; worstMean = Math.max(worstMean, m);
+      h += `<tr><td class="l">${esc(g)}</td><td class="${errClass(m)}">${m.toFixed(2)} mm</td><td>${a.n}</td></tr>`;
+    }
+    h += '</tbody></table></div>';
+    h += `<p>Fit residual ${f.rms} ns from ${plural(f.used, 'tap')}` +
+      (Number.isFinite(f.worst) ? `; worst single tap ${f.worst.toFixed(2)} mm` : '') + '.</p>';
+    if (f.implausible) h += '<p class="msg err">The fitted wave speed is implausible for steel. The sensor positions on the target probably don\'t match the jig. Check them under "Edit values by hand" before applying.</p>';
+    else if (worstMean > GOOD_MM) h += `<p class="notice">At least one guide is above ${GOOD_MM} mm after the fit. A slipped tap or a sensor that is off its spot can cause this. You can add taps at a guide, or start over.</p>`;
+    else h += '<p class="msg ok">The fit looks good. Apply it, then check it on the held-out guides.</p>';
+    h += `<details><summary>Target output</summary><pre class="raw">${esc(W.fitRaw)}</pre></details>`;
+    h += '<p class="muted">Add more taps at a guide:</p>' + chips;
+    return h + '<div class="btnrow">' + btn('apply', 'Apply and check', { off: f.implausible }) + btn('redo', 'Start over', { ghost: true }) +
+      '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+  },
+  check() {
+    const g = CHECK_PTS[W.chk], taps = W.taps[g], n = taps.length, m = meanErr(taps), last = W.chk === CHECK_PTS.length - 1;
+    let say;
+    if (W.armed) say = `Tap square guide <b>${g}</b> ${MIN_TAPS}–5 times. These taps weren't used in the fit, so their error shows how well the new values work. Aim for a mean under ${GOOD_MM} mm; a single tap can go over from timing jitter alone.`;
+    else if (busyText) say = "Setting up the check. Don't tap yet.";
+    else say = "The target hasn't confirmed the check yet. Don't tap until it does.";
+    let h = '<div class="wizgrid">' + jigSvg(g) + '<div>' +
+      `<h3>Check ${g} <span class="muted">· ${W.chk + 1} of ${CHECK_PTS.length}</span></h3><p>${say}</p>` +
+      `<div class="count"><b>${n}</b> ${n === 1 ? 'tap' : 'taps'}` +
+      (m != null ? ` · mean error <span class="${errClass(m)}">${m.toFixed(2)} mm</span>` : '') + '</div>' +
+      tapList(taps, true) + '</div></div><div class="btnrow">';
+    if (!W.armed && !busyText) h += btn('arm', 'Try again');
+    h += btn('next', last ? 'Finish checks' : 'Next guide', { off: n < MIN_TAPS || !W.armed });
+    h += btn('back', 'Previous', { ghost: true, off: W.chk === 0 });
+    if (n < MIN_TAPS) h += btn('next:skip', 'Skip guide', { ghost: true });
+    if (DEMO) h += btn('sim', 'Simulate tap', { ghost: true, off: !W.armed });
+    return h + '<span class="spacer"></span>' + btn('cancel', 'Cancel', { ghost: true }) + '</div>';
+  },
+  save() {
+    let h = '<h3>Save the calibration</h3><div class="tblwrap"><table><thead><tr><th class="l">Check</th><th>Mean error</th><th>Taps</th></tr></thead><tbody>';
+    let worst = null;
+    for (const g of CHECK_PTS) {
+      const m = meanErr(W.taps[g]);
+      if (m != null) worst = Math.max(worst || 0, m);
+      h += `<tr><td class="l">${g}</td><td class="${errClass(m)}">${m == null ? 'skipped' : m.toFixed(2) + ' mm'}</td><td>${W.taps[g].length}</td></tr>`;
+    }
+    h += '</tbody></table></div>';
+    if (worst == null) h += '<p class="notice">No check taps, so the result hasn\'t been verified.</p>';
+    else if (worst <= GOOD_MM) h += `<p class="msg ok">Every check guide is within ${GOOD_MM} mm. The calibration looks good.</p>`;
+    else h += `<p class="notice">At least one check guide is above ${GOOD_MM} mm on average. If it's well above, redo the calibration, re-seating the jig carefully.</p>`;
+    h += "<p>The new values are live on the target but not saved yet. If it restarts, it goes back to the old ones.</p>";
+    return h + '<div class="btnrow">' + btn('save', 'Save on target') + btn('redo', 'Redo calibration', { ghost: true }) +
+      btn('discard', 'Discard new values', { ghost: true }) + '</div>';
+  },
+  done() {
+    if (W.discarded) return "<h3>Discarded</h3><p>The target is back to the calibration it had saved.</p><div class=\"btnrow\">" + btn('close', 'Close') + '</div>';
+    const hmm = tcfg ? tcfg.h.toFixed(2) : '?';
+    return '<h3>Calibration saved</h3><p class="msg ok">The new wave speed and channel delays are stored on the target.</p>' +
+      `<p>Live shots are solved with the plate thickness, currently <b>${hmm} mm</b>. If that's not your plate, change it under "Edit values by hand".</p>` +
+      '<p class="muted">The check taps are listed in the shot table as "cal check" and aren\'t counted in the group.</p>' +
+      '<div class="btnrow">' + btn('close', 'Close') + '</div>';
+  },
+};
+function renderWiz() {
+  const el = $('wiz'), on = W.step !== 'idle';
+  el.hidden = !on;
+  $('btnWizStart').hidden = on;
+  if (on) {
+    el.innerHTML = stepper() + STEPS[W.step]() + (W.msg ? `<p class="msg ${W.msg.kind}">${esc(W.msg.text)}</p>` : '');
+  }
+  renderBusy();
+}
+
+// ---- Demo target (?demo): answers commands the way the firmware does ----
+const demoT = {
+  cfg: { v: 5900, h: 9.5, aimX: 0, aimY: 0, s: DEFAULT_SENSORS.map(([x, y]) => ({ x, y, d: 0 })) },
+  saved: null, check: null,
+  cal: { active: false, back: true, have: false, px: 0, py: 0, no: 0, taps: [], result: null },
+};
+demoT.saved = JSON.parse(JSON.stringify(demoT.cfg));
+const DEMO_TRUE = { v: 5480, d: [0, 42, -18, 25, 61] };
+const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
+const pad = (s, n) => String(s).padStart(n);
+function demoTarget(line) {
+  const a = line.trim().split(/\s+/), c = demoT.cfg, cal = demoT.cal;
+  const pt = s => s && GUIDES[s.toUpperCase()];
+  switch (a[0]) {
+    case 'show':
+      return 'channels 5 (active 5), minch 4\n' +
+        c.s.map((s, i) => `  s${i + 1}  x ${pad(s.x.toFixed(2), 7)}  y ${pad(s.y.toFixed(2), 7)}  delay ${pad(sgn(s.d).replace('−', '-'), 6)} ns\n`).join('') +
+        `v ${c.v.toFixed(0)} m/s  h ${c.h.toFixed(2)} mm\naim ${c.aimX.toFixed(2)} ${c.aimY.toFixed(2)}  flip 0 0\n` +
+        'win 200 us  hold 250 ms  rlim 500 ns\ntimer 80000000 Hz\n';
+    case 'set': {
+      const n = a.slice(2).map(Number);
+      if (n.some(x => !Number.isFinite(x))) return `error: '${a[2]}' is not a number\n`;
+      if (a[1] === 'v') c.v = n[0];
+      else if (a[1] === 'h') c.h = n[0];
+      else if (a[1] === 'aim') { c.aimX = n[0]; c.aimY = n[1]; }
+      else if (a[1] === 's') { c.s[n[0] - 1].x = n[1]; c.s[n[0] - 1].y = n[2]; }
+      else if (a[1] === 'd') c.s[n[0] - 1].d = n[1];
+      else return `error: unknown setting '${a[1]}'\n`;
+      return 'ok (not saved)\n';
+    }
+    case 'save': demoT.saved = JSON.parse(JSON.stringify(c)); return 'saved\n';
+    case 'load': demoT.cfg = JSON.parse(JSON.stringify(demoT.saved)); return 'loaded\n';
+    case 'check':
+      if (a[1] === 'off') { demoT.check = null; return 'check: off\n'; }
+      if (!pt(a[1])) return 'error: missing number\n';
+      demoT.check = pt(a[1]);
+      return `check: each shot reports its error from (${demoT.check[0].toFixed(1)}, ${demoT.check[1].toFixed(1)}), ${cal.back ? 'back' : 'front'}-face taps\n`;
+    case 'cal':
+      if (a[1] === 'start') {
+        Object.assign(cal, { active: true, back: a[2] !== 'front', have: false, no: 0, taps: [], result: null });
+        return `cal: started, taps on the ${cal.back ? 'back' : 'front'} face (thickness ${cal.back ? 'ignored' : 'included'}). Next: 'cal at P0', then tap 3-5 times.\n`;
+      }
+      if (a[1] === 'at') {
+        if (!cal.active) return "cal: not active, use 'cal start' first\n";
+        const p = pt(a[2]); if (!p) return 'error: missing number\n';
+        cal.have = true; [cal.px, cal.py] = p; cal.no++;
+        return `cal: point ${cal.no} at (${p[0].toFixed(2)}, ${p[1].toFixed(2)}) mm. Tap now.\n`;
+      }
+      if (a[1] === 'undo') { if (!cal.taps.length) return 'cal: no taps\n'; cal.taps.pop(); return `cal: removed last tap, ${cal.taps.length} left\n`; }
+      if (a[1] === 'list' || !a[1]) {
+        let t = `cal: ${cal.active ? 'active' : 'stopped'}, ${cal.back ? 'back' : 'front'} face, ${cal.taps.length} taps\n`;
+        for (let i = 0; i < cal.taps.length;) {
+          const p = cal.taps[i]; let n = 0;
+          while (i + n < cal.taps.length && cal.taps[i + n].no === p.no) n++;
+          t += `  point ${p.no} (${p.x.toFixed(2)}, ${p.y.toFixed(2)}): ${n} taps\n`; i += n;
+        }
+        return t;
+      }
+      if (a[1] === 'fit') {
+        const pts = new Set(cal.taps.map(t => t.x + ',' + t.y));
+        if (pts.size < 3) return `cal: fit failed (${cal.taps.length} usable taps). Need taps at several spread-out points.\n`;
+        const fitV = a[2] !== 'fixv';
+        const v = fitV ? DEMO_TRUE.v + gauss() * 4 : c.v, d = DEMO_TRUE.d.map((x, i) => i ? x + gauss() * 3 : 0);
+        cal.result = { v, d };
+        let t = `cal: fit from ${cal.taps.length} taps, rms ${Math.round(60 + Math.random() * 30)} ns\n  v = ${v.toFixed(0)} m/s${fitV ? '' : ' (fixed)'}\n`;
+        d.forEach((x, i) => { t += `  ch${i + 1} delay ${sgn(x).replace('−', '-')} ns\n`; });
+        t += '  per-point error with new values:\n';
+        let worst = 0;
+        for (let i = 0; i < cal.taps.length;) {
+          const no = cal.taps[i].no; let n = 0;
+          while (i + n < cal.taps.length && cal.taps[i + n].no === no) n++;
+          const m = 0.3 + Math.random() * 0.7; worst = Math.max(worst, m * 1.6);
+          t += `    point ${no}: mean ${m.toFixed(2)} mm (${n} taps)\n`; i += n;
+        }
+        return t + `  worst tap ${worst.toFixed(2)} mm. 'cal apply' then 'save' to keep.\n`;
+      }
+      if (a[1] === 'apply') {
+        if (!cal.result) return "cal: nothing to apply, run 'cal fit' first\n";
+        c.v = cal.result.v; c.s.forEach((s, i) => { s.d = cal.result.d[i]; });
+        return "cal: applied (not yet saved). Check held-out points with 'check <x> <y>', then 'save'.\n";
+      }
+      if (a[1] === 'stop') { cal.active = false; cal.have = false; return `cal: stopped (${cal.taps.length} taps kept until next 'cal start')\n`; }
+      return `error: unknown cal command '${a[1]}'\n`;
+    default:
+      return `error: unknown command '${a[0]}' (try 'help')\n`;
+  }
+}
+function demoSimTap() {
+  const c = demoT.cfg, cal = demoT.cal;
+  const calTap = cal.active && cal.have, p = calTap ? [cal.px, cal.py] : demoT.check;
+  if (!p) return;
+  // Error grows with how far the live wave speed is from the plate's "true" one.
+  const bias = Math.abs(c.v - DEMO_TRUE.v) / DEMO_TRUE.v * 60, r = Math.hypot(p[0], p[1]) || 1;
+  const x = p[0] + p[0] / r * bias + gauss() * 0.7 - c.aimX, y = p[1] + p[1] / r * bias + gauss() * 0.7 - c.aimY;
+  const flags = (calTap ? F_CAL : 0) | (Math.random() < 0.08 ? F_MISSING : 0);
+  if (calTap) cal.taps.push({ no: cal.no, x: cal.px, y: cal.py });
+  demoQueue.push({ x: +x.toFixed(1), y: +y.toFixed(1), flags });
+}
+
 $('footInfo').textContent = DEMO ? 'Demo mode: synthetic shots, no receiver.' :
   `Receiver at ${location.host}. Shots and settings are stored in this browser (up to ${MAX_STORE} shots).`;
 applyCfg();
+renderBusy();
 poll();
 })();
 </script>

@@ -98,7 +98,10 @@ Recalibrate for each plate. Calibration and settings are stored on the target bo
 - Channel 1's delay is the zero reference, so other channels' delays can be negative.
 - A fitted speed far outside about 2500–7000 m/s means the sensor coordinates or tap positions are wrong.
 
-You can run all of this from the firing line too. Type the same commands into the receiver's serial monitor, and they're relayed to the target over LoRa.
+You can run all of this from the firing line too:
+
+- **From a phone:** open the web app's **Target calibration** panel and press **Start guided calibration** ([Web app](#web-app)). It sends the same commands for you.
+- **From a laptop:** type the same commands into the receiver's serial monitor, and they're relayed to the target over LoRa.
 
 ## Commands
 
@@ -137,6 +140,13 @@ What you get:
 - Group centre, extreme spread and mean radius for the shots on screen, in inches or mm and in MOA and mil.
 - **Show last** 10, 20, 50 or all shots. Tap a hit or a table row to highlight it.
 - **Clear shots** starts a new group everywhere: this browser, the receiver's OLED and every other connected browser.
+- **Target calibration** reads the target's calibration values and walks you through calibrating from your phone, with the jig on the plate:
+  1. Tap each round guide P0–P5 3–5 times. A diagram of the jig, seen from the back, shows which guide is next, and each tap appears as it's recorded. **Undo last tap** removes a slip.
+  2. The target fits the wave speed and channel delays. The page shows the fitted values next to the old ones, plus each guide's error.
+  3. Apply the fit, then tap each square guide H1, H2 and H4 to check it. Aim for a mean error under 2 mm.
+  4. Save the values on the target, or discard them to go back to the saved ones.
+
+  **Edit values by hand** sets the wave speed, plate thickness, aim point, channel delays and sensor positions directly, then saves them on the target. Check taps are listed as `cal check` and kept out of the group. The wizard uses the default jig's guide names, so a modified jig still needs the serial console.
 
 <p>
 <img src="../docs/images/webapp-phone-round.png" width="300" alt="Phone view, dark theme: 12 in round plate at 100 yd with a 1 MOA grid, 10 hits, stats and the shot table">
@@ -145,13 +155,22 @@ What you get:
 
 *Left: a round plate at 100 yd with a 1 MOA grid, dark theme. Right: a 12 × 18 in rectangular plate at 100 m with a 0.1 mil grid and the ring 3 in below the plate centre, with Target setup open. Both were captured in demo mode, so the shots are synthetic.*
 
+<p>
+<img src="../docs/images/webapp-phone-calibration-tap.png" width="300" alt="Phone view, dark theme: the calibration wizard on guide P2 of 6, with a jig diagram seen from the back, P0 and P1 done, P2 highlighted and two taps listed">
+<img src="../docs/images/webapp-phone-calibration-fit.png" width="300" alt="Phone view, light theme: the calibration wizard's fit result, with wave speed and channel delays before and after, and each guide's mean error under 1 mm">
+</p>
+
+*Calibration from a phone. Left: tapping guide P2, with the jig drawn as you see it from behind the plate. Right: the fit result before it's applied and checked. Both were captured in demo mode against a simulated target.*
+
 **Where the shots live.** The browser is the store of record: shots (up to 500) and your settings are kept in that browser's local storage, so they survive reloads and receiver reboots, and nothing is written to the receiver's flash. The receiver only keeps the last 64 shots in RAM so a page that was closed or asleep can catch up when it reconnects. If a phone is off the network for more than 64 shots, the earlier ones are missing from that phone. Each phone or laptop has its own history and its own settings. Clearing the browser's site data clears the shots.
 
 **Network notes.** Up to 4 devices can connect. Wi-Fi range from the Heltec's small PCB antenna is roughly 10–30 m, so keep the receiver on the bench. The receiver answers the operating system's "is the internet reachable" checks so that phones stay on the network without nagging; while connected, other apps on that device have no internet. Wi-Fi adds about 100 mA to the receiver's draw, so budget for it on battery. The Heltec's Wi-Fi and LoRa radios are independent, so the web app doesn't affect shot reception.
 
 **API.** The app polls `GET /api/shots?since=<seq>` twice a second. The reply has the receiver's boot id and sequence counter, a clear counter, the target's last-heard status and the buffered shots newer than `seq`, each with the same fields as the serial JSON plus `seq` and `t_ms`. `POST /api/clear` empties the buffer and bumps the clear counter. Shot keys are (`boot`, `n`), the same as the serial de-duplication. Anything else that reads the receiver can use the same two calls.
 
-**Changing the page.** Edit [src/receiver/web/index.html](src/receiver/web/index.html) and rebuild; [tools/embed_web.py](tools/embed_web.py) gzips it into `src/receiver/web_page.h` (generated, not committed) before each receiver build. To work on the page without a receiver, open the file in a browser with `?demo` on the URL: it then invents shots.
+`POST /api/cmd` with the form field `c=<command>` relays one console command to the target and returns `{ok, id}`. Poll `GET /api/cmd?id=<id>` until `state` is `done`; `text` then holds the target's reply, exactly as the serial console prints it. If `gap` is true, a chunk of the reply was lost. The receiver keeps the last 4 commands. Commands over LoRa aren't acknowledged, so if no reply arrives within a few seconds, the command may or may not have run. Resend only commands that are safe to repeat; the calibration wizard never resends `cal undo`. `rx` commands are serial-only.
+
+**Changing the page.** Edit [src/receiver/web/index.html](src/receiver/web/index.html) and rebuild; [tools/embed_web.py](tools/embed_web.py) gzips it into `src/receiver/web_page.h` (generated, not committed) before each receiver build. To work on the page without a receiver, open the file in a browser with `?demo` on the URL: it then invents shots, and a simulated target answers the calibration panel, with a **Simulate tap** button.
 
 ## Serial output
 

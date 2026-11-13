@@ -46,6 +46,26 @@ uint32_t s_seq = 0;
 uint32_t s_clears = 0;
 uint32_t s_rxBoot = 1;
 void (*s_onClear)() = nullptr;
+uint8_t (*s_sendCmd)(const char*) = nullptr;
+
+// Console commands sent from browsers and the target's replies. A reply comes
+// back as one or more PKT_RESP chunks carrying the command's seq.
+constexpr int kCmdSlots = 4;
+constexpr size_t kReplyCap = 1700;          // the target buffers at most 1600 bytes of output
+constexpr uint32_t kReplyMatchMs = 30000;   // ignore chunks for commands older than this
+struct Cmd {
+  uint32_t id = 0;  // 0 = empty
+  uint32_t sentAt = 0;
+  uint8_t seq = 0;
+  uint8_t nextPart = 0;
+  bool done = false;
+  bool gap = false;  // a chunk went missing
+  uint16_t len = 0;
+  char text[kReplyCap];
+};
+Cmd s_cmds[kCmdSlots];
+int s_cmdNext = 0;
+uint32_t s_cmdId = 0;
 
 // Last-heard state of the target, from shots and status heartbeats.
 struct {
@@ -118,6 +138,79 @@ void handleClear() {
   s_http.send(200, "application/json", s_buf);
 }
 
+void sendJson(int code, const char* body) {
+  noCache();
+  s_http.send(code, "application/json", body);
+}
+
+void handleCmdPost() {
+  const String c = s_http.arg("c");
+  const char* why = nullptr;
+  if (!s_sendCmd) why = "relay unavailable";
+  else if (c.length() == 0 || c.length() > og::kMaxText) why = "command must be 1-200 characters";
+  else if (c.startsWith("rx")) why = "receiver commands are serial-only";
+  for (size_t i = 0; !why && i < c.length(); ++i)
+    if (c[i] < 32 || c[i] > 126) why = "command must be printable ASCII on one line";
+  if (why) {
+    snprintf(s_buf, sizeof s_buf, "{\"ok\":false,\"error\":\"%s\"}", why);
+    sendJson(400, s_buf);
+    return;
+  }
+  Cmd& m = s_cmds[s_cmdNext];
+  s_cmdNext = (s_cmdNext + 1) % kCmdSlots;
+  m.id = ++s_cmdId;
+  m.done = m.gap = false;
+  m.len = 0;
+  m.nextPart = 0;
+  m.text[0] = '\0';
+  m.seq = s_sendCmd(c.c_str());  // transmits now; the reply arrives through recordResponse()
+  m.sentAt = millis();
+  snprintf(s_buf, sizeof s_buf, "{\"ok\":true,\"id\":%lu}", (unsigned long)m.id);
+  sendJson(200, s_buf);
+}
+
+void handleCmdGet() {
+  const uint32_t id = s_http.hasArg("id") ? strtoul(s_http.arg("id").c_str(), nullptr, 10) : 0;
+  const Cmd* m = nullptr;
+  for (const Cmd& c : s_cmds)
+    if (id && c.id == id) m = &c;
+  if (!m) {
+    snprintf(s_buf, sizeof s_buf, "{\"id\":%lu,\"state\":\"unknown\"}", (unsigned long)id);
+    sendJson(200, s_buf);
+    return;
+  }
+  noCache();
+  s_http.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  s_http.send(200, "application/json", "");
+  snprintf(s_buf, sizeof s_buf, "{\"id\":%lu,\"state\":\"%s\",\"gap\":%s,\"age_ms\":%lu,\"text\":\"",
+           (unsigned long)m->id, m->done ? "done" : "pending", m->gap ? "true" : "false",
+           (unsigned long)(millis() - m->sentAt));
+  s_http.sendContent(s_buf);
+  // JSON-escape the reply in pieces that fit s_buf.
+  size_t o = 0;
+  for (size_t i = 0; i < m->len; ++i) {
+    const char ch = m->text[i];
+    if (o > sizeof s_buf - 8) {
+      s_buf[o] = '\0';
+      s_http.sendContent(s_buf);
+      o = 0;
+    }
+    if (ch == '"' || ch == '\\') {
+      s_buf[o++] = '\\';
+      s_buf[o++] = ch;
+    } else if (ch == '\n') {
+      s_buf[o++] = '\\';
+      s_buf[o++] = 'n';
+    } else if (static_cast<uint8_t>(ch) >= 32 && static_cast<uint8_t>(ch) < 127) {
+      s_buf[o++] = ch;
+    }  // drop \r, tabs and anything else unprintable
+  }
+  s_buf[o] = '\0';
+  s_http.sendContent(s_buf);
+  s_http.sendContent("\"}");
+  s_http.sendContent("");
+}
+
 // Connectivity probes. Answering them the way a real internet connection would
 // keeps phones and laptops from nagging about "no internet" or dropping the
 // network, and stops the captive-portal sheet from opening. While connected to
@@ -143,8 +236,9 @@ void handleNotFound() {
 
 }  // namespace
 
-void begin(void (*onClear)()) {
+void begin(void (*onClear)(), uint8_t (*sendCmd)(const char* text)) {
   s_onClear = onClear;
+  s_sendCmd = sendCmd;
   s_rxBoot = (esp_random() & 0x00ffffffu) | 1u;
 
   WiFi.persistent(false);
@@ -164,6 +258,8 @@ void begin(void (*onClear)()) {
   s_http.on("/index.html", HTTP_GET, handleIndex);
   s_http.on("/api/shots", HTTP_GET, handleShots);
   s_http.on("/api/clear", HTTP_POST, handleClear);
+  s_http.on("/api/cmd", HTTP_POST, handleCmdPost);
+  s_http.on("/api/cmd", HTTP_GET, handleCmdGet);
   s_http.on("/generate_204", handleNoContent);               // Android
   s_http.on("/gen_204", handleNoContent);
   s_http.on("/hotspot-detect.html", handleSuccessHtml);      // iOS / macOS
@@ -220,6 +316,26 @@ void recordStatus(const og::StatusPacket& st, float rssi) {
   s_tgt.n_ch = st.n_ch;
   s_tgt.mode = st.mode;
   s_tgt.rssi = rssi;
+}
+
+void recordResponse(uint8_t seq, uint8_t part, const char* text) {
+  // Newest pending command with this seq (seq is 8 bits, so it wraps).
+  Cmd* m = nullptr;
+  const uint32_t now = millis();
+  for (Cmd& c : s_cmds)
+    if (c.id && !c.done && c.seq == seq && now - c.sentAt < kReplyMatchMs && (!m || c.id > m->id)) m = &c;
+  if (!m) return;  // a serial-console command, or a reply we gave up on
+  const uint8_t n = part & 0x7F;
+  if (n < m->nextPart) return;  // repeated chunk
+  if (n > m->nextPart) m->gap = true;
+  const size_t add = strnlen(text, og::kMaxText);
+  const size_t room = kReplyCap - 1 - m->len;
+  const size_t k = add < room ? add : room;
+  memcpy(m->text + m->len, text, k);
+  m->len += k;
+  m->text[m->len] = '\0';
+  m->nextPart = n + 1;
+  if (part & og::kPartLast) m->done = true;
 }
 
 void clearLog() {

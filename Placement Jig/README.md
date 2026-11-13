@@ -94,7 +94,7 @@ Add `-D` overrides for any parameters you changed, such as `-D disc_d=12.7`, or 
 
 ## 5. Seat the jig on the plate
 
-Sand the sensor spots on the back face to bright metal first, then wipe them with isopropyl alcohol to remove dust and finger oil (System Design §4). Glue the same day you sand. Then put the jig flat on the back face with the up arrow pointing to the top of the plate as it hangs.
+Sand the sensor spots on the back face to bright metal first, then wipe them with isopropyl alcohol to remove dust and finger oil ([System Design §4](../docs/System-Design.md#4-sensors-harness-and-mechanical)). Glue the same day you sand. Then put the jig flat on the back face with the up arrow pointing to the top of the plate as it hangs.
 
 **Rectangular plate.** Push the jig down and into the corner until all three stops touch the plate edges: two on the bottom edge and one on the side.
 
@@ -107,11 +107,11 @@ Sand the sensor spots on the back face to bright metal first, then wipe them wit
 
 Put the glue on the plate **before** the disc goes in. Once a disc is in its pocket there is only about 0.15 mm of clearance around it, so glue can't be worked underneath afterwards.
 
-Prep the discs first. Lightly scuff each disc's brass face with 400–600 grit until it is dull, then wipe it with isopropyl alcohol. Don't sand the ceramic side, and from then on handle the disc only by its edge or ceramic side (System Design §4).
+Prep the discs first. Lightly scuff each disc's brass face with 400–600 grit until it is dull, then wipe it with isopropyl alcohol. Don't sand the ceramic side, and from then on handle the disc only by its edge or ceramic side ([System Design §4](../docs/System-Design.md#4-sensors-harness-and-mechanical)).
 
 1. With the jig seated, put a **small** dot of CA or hard-setting epoxy on the bare metal at the centre of the pocket. Reach in through the bore with a toothpick or needle.
 2. Drop the piezo disc into its pocket, brass side down. Three ribs centre it.
-3. Press on the disc through the 10 mm boss so the glue spreads into a thin, rigid layer (System Design §4).
+3. Press on the disc through the 10 mm boss so the glue spreads into a thin, rigid layer ([System Design §4](../docs/System-Design.md#4-sensors-harness-and-mechanical)).
 4. Keep the dot small. A 0.8 mm chamfer at the bottom of each pocket catches a little squeeze-out so it can't lock the jig to the plate, but too much glue can reach the ribs or the jig's underside.
 5. CA can set before all five discs are pressed. Glue one pocket at a time, or use a slower epoxy (e.g. JB Weld) for more working time.
 6. Let the glue cure, then lift the jig straight off over the sensor leads. Solder the leads afterwards, or keep them clear of the boss while lifting.
@@ -158,7 +158,7 @@ These are the firmware defaults. The firmware also accepts the point names direc
 
 - Copy the new `SENSOR` lines from the console into the firmware with `set s <ch> <x> <y>`, then `save`.
 - The firmware's built-in names P0–P5 and H1/H2/H4 only match the default positions. Use numeric coordinates from the new `PUNCH` lines instead, for example `cal at 0 70`.
-- A larger ring covers a larger scoring zone but needs a larger plate; check the console warnings. A rectangle-only build can use `ring_r = 140`, which is the layout in the accuracy table in System Design §2. That ring won't fit a 12 in round plate.
+- A larger ring covers a larger scoring zone but needs a larger plate; check the console warnings. A rectangle-only build can use `ring_r = 140`, which is the layout in the accuracy table in [System Design §2](../docs/System-Design.md#2-accuracy-budget). That ring won't fit a 12 in round plate.
 
 ## Parameter reference
 

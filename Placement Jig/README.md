@@ -75,7 +75,10 @@ Add `-D` overrides for any parameters you changed, such as `-D disc_d=12.7`, or 
 ## 3. Print
 
 1. **Test bar first.** Print `test_bar` in the same material and with the same settings you'll use for the jig. Measure its length with calipers. Then set the XY scale of every jig part in your slicer to 200 ÷ measured length. For example, a bar measuring 199.4 mm needs a scale of 100.3%. The two 3 mm holes are 190 mm apart, centre to centre, if you'd rather measure those.
-2. **Material.** PETG.
+2. **Material.** PETG is recommended. It stays springy and tough, so the round-plate flex hook keeps its preload, the puzzle joints flex as they press together, and the punch guides don't crack. It also holds its shape up to about 75 °C, which matters on a plate left in the sun.
+   - **PLA:** fine for a rectangular plate if the jig is kept out of heat, since PLA softens at about 55–60 °C. For a round plate, print `round_top_flex` in PETG: a PLA beam is brittle and slowly loses its spring under load. Print a test bar in each material and scale each part from its own bar.
+   - **ABS/ASA:** fine. These shrink and warp more, but the test-bar scaling makes up for the shrinkage.
+   - **Avoid** TPU or other flexible filaments, which are too soft to hold positions, and silk PLA, which is weak between layers.
 3. **Orientation.** Print the segments and the hub as exported: flat face down, bosses up. The adapters are exported already flipped, with the plate-side face up, so they print without supports. No part needs supports.
 4. **Puzzle joints.** The joints are full-height and print flat. If the knobs won't go in, check the slicer's XY scale and elephant-foot compensation before changing `fit`, the per-side joint clearance (0.15 mm by default).
 

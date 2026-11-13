@@ -153,7 +153,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 
 ## 9. Wireless link and range
 
-**Summary:** the design range is **500 m**. With the default settings and antennas 1–2 m off the ground, the estimated link margin at 500 m over open ground is about **40 dB**, enough for a reliable link with room for brush and people in the path. On flat, open ground the estimated limit is **2–4 km**. These figures come from the link budget below, not from field tests; range-test before relying on them.
+**Summary:** the design range is **500 m**. With the default settings and antennas 1–2 m off the ground, the estimated link margin at 500 m over open ground is about **40 dB**, enough for a reliable link with room for brush and people in the path. On flat, open ground the estimated limit is **2–4 km**. These figures come from the link budget below, not from field tests; run a signal range test (section 9.6) before relying on them.
 
 - **Boards:** **Heltec WiFi LoRa 32 V3** (ESP32-S3 + SX1262 LoRa radio + small display, about $20) at both ends. The target board is also the timing and solving computer. US band is 915 MHz.
 - **Settings:** SF8, 125 kHz bandwidth, coding rate 4/5, +17 dBm by default (in `OpenGongProto.h`). SF7–9 and +14 to +20 dBm are the design range. Both boards must use the same settings, so reflash both after a change.
@@ -221,13 +221,13 @@ Keep at least **10 dB** of margin for fading and changes from day to day. Under 
 - **US (902–928 MHz):** +17 dBm with ordinary dipoles is well under the 1 W limit, but the operating rules depend on how the device is certified. Check the rules that apply to your setup.
 - **EU (868 MHz):** set `kLoraFreqMHz` to 868. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. Lower `kLoraPowerDbm` to 14 or less to stay within it. At SF8, 1% (36 s of airtime per hour) allows about 300 acknowledged shots per hour, which is ample for normal shooting.
 
-### 9.6 Range test
+### 9.6 Signal range test
 
 Before live fire:
 
 1. Set up both boards in their final positions.
 2. Send synthetic shots. The target simulates these shots itself and sends them over the radio, as it would a real hit. **Don't fire real shots for this test.** Nobody needs to be near the plate, and it should stay clear. Send them from either:
-   - **The web app:** open **Range test**, pick the number of shots and press **Run range test**. It does steps 3 and 4 for you and marks each result against the table below.
+   - **The web app:** open **Signal range test**, pick the number of shots and press **Run signal range test**. It does steps 3 and 4 for you and marks each result against the table below.
    - **The serial monitor:** at the receiver, type `sim P0`. The command is relayed to the target, and the target sends back a synthetic shot.
 3. Read the result:
    - Each shot line from the receiver includes `rssi` and `snr`.
@@ -331,5 +331,5 @@ A cheap USB oscilloscope (about $60–80) is optional but very helpful for seein
 3. **Print the jig:** the test bar first, then the ring and the adapter for your plate shape. Test-fit it, then glue the 5 sensors to the real plate (4.1).
 4. **Build the 5-channel board** ([order and assemble the PCB](../hardware/analog-board/README.md)) and flash the ESP32-S3 capture and solver firmware.
 5. **Calibrate** with the punch guides and check against the held-out points.
-6. **Add the LoRa link** and receiver app, then range-test at 500 m.
+6. **Add the LoRa link** and receiver app, then run a signal range test (section 9.6) at 500 m.
 7. **Live fire** at a rated distance and compare reported positions to the splash marks.

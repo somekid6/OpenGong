@@ -235,8 +235,8 @@
 </details>
 
 <details id="range">
-  <summary>Range test</summary>
-  <p class="muted">Checks the radio link before live fire. Set both boards in their final positions first. The target fires synthetic shots at P0 and sends them over LoRa like real hits; the receiver measures how strongly each one arrives. Range-test shots stay in the table but aren't plotted or counted in the group.</p>
+  <summary>Signal range test</summary>
+  <p class="muted">Checks the radio link before live fire. Set both boards in their final positions first. The target fires synthetic shots at P0 and sends them over LoRa like real hits; the receiver measures how strongly each one arrives. Signal range test shots stay in the table but aren't plotted or counted in the group.</p>
   <p class="notice">The target simulates these shots itself. <b>Don't fire real shots for this test.</b> Keep the plate clear.</p>
   <div id="rtBody"></div>
 </details>
@@ -263,8 +263,8 @@
 const $ = id => document.getElementById(id);
 const IN = 25.4, MOA = Math.PI / (180 * 60), MIL01 = 1e-4;
 const DEMO = /[?&]demo/.test(location.search);
-// Bits 0-6 come from the target. This page sets bit 8 on check taps during calibration and bit 9 on range-test shots.
-const FLAGS = ['missing_ch', 'high_resid', 'dropped_ch', 'outside_ring', 'no_fix', 'cal', 'sim', '', 'cal_check', 'range_test'];
+// Bits 0-6 come from the target. This page sets bit 8 on check taps during calibration and bit 9 on signal range test shots.
+const FLAGS = ['missing_ch', 'high_resid', 'dropped_ch', 'outside_ring', 'no_fix', 'cal', 'sim', '', 'cal_check', 'signal_range_test'];
 const F_MISSING = 0x01, F_RESID = 0x02, F_NOFIX = 0x10, F_CAL = 0x20, F_SIM = 0x40, F_CHECK = 0x100, F_RANGE = 0x200;
 const F_SUSPECT = 0x01 | 0x02 | 0x04 | 0x08;
 const MAX_STORE = 500;
@@ -459,7 +459,7 @@ function updateStats() {
   $('stMrA').textContent = fmtAng(mr);
 }
 
-const flagNames = f => FLAGS.filter((x, b) => x && f & (1 << b)).map(x => x.replace('_', ' ')).join(', ');
+const flagNames = f => FLAGS.filter((x, b) => x && f & (1 << b)).map(x => x.replace(/_/g, ' ')).join(', ');
 
 function updateTable() {
   const vis = visible(), tb = $('rows');
@@ -505,7 +505,7 @@ function demoFetch(since) {
     out.shots.push(Object.assign({ seq: demoSeq, boot: 40211, n: demoSeq, rms: 70, fired: 31, used: 31, rssi: -88, snr: 7, t_ms: now }, s));
     out.seq = demoSeq;
   }
-  if (out.shots.length || W.step !== 'idle' || RT.run) return Promise.resolve(out);  // no random shots during calibration or a range test
+  if (out.shots.length || W.step !== 'idle' || RT.run) return Promise.resolve(out);  // no random shots during calibration or a signal range test
   if (Math.random() < 0.25 || (since === 0 && demoSeq === 0)) {
     demoSeq++;
     const a = Math.random() * 2 * Math.PI, rr = 25 * Math.sqrt(Math.random());
@@ -542,7 +542,7 @@ function ingest(d) {
     const idx = (shots.length ? shots[shots.length - 1].idx : 0) + 1;
     const sh = { key, idx, boot: s.boot, n: s.n, x: s.x, y: s.y, rms: s.rms, flags: s.flags, at: skew + s.t_ms,
       rssi: s.rssi, snr: s.snr };
-    rangeOnShot(sh);  // the range test collects its synthetic shots
+    rangeOnShot(sh);  // the signal range test collects its synthetic shots
     calOnShot(sh);    // the calibration wizard counts taps and marks check taps
     shots.push(sh);
     changed = true;
@@ -1308,7 +1308,7 @@ function demoSimTap() {
 }
 
 // ---------------------------------------------------------------------------
-// Range test (System Design §9.6). The target fires synthetic shots at P0
+// Signal range test (System Design §9.6). The target fires synthetic shots at P0
 // ('sim P0') and sends each over LoRa like a real hit, so the receiver reports
 // its RSSI and SNR. 'stats' before and after gives the target's sent, acked
 // and failed counts, and the RSSI/SNR it last heard from the receiver.
@@ -1399,7 +1399,7 @@ function rangeResult() {
   h += '</tbody></table></div>';
   const got = RT.got.filter(g => Number.isFinite(g.snr));
   if (!RT.got.length) {
-    h += '<p class="msg err">No range-test shots came back. Check that the target is on, both antennas are fitted, and the boards are within range.</p>';
+    h += '<p class="msg err">No signal range test shots came back. Check that the target is on, both antennas are fitted, and the boards are within range.</p>';
   } else if (rows.every(r => r[3] !== false)) {
     const margin = Math.min(...got.map(g => g.snr)) - RT_DECODE_SNR;
     h += `<p class="msg ok">The link is healthy${got.length ? `, with about ${margin.toFixed(0)} dB of margin above the decode limit` : ''}. Repeat the test with people standing in their usual positions.</p>`;
@@ -1418,7 +1418,7 @@ function renderRange() {
     `<button data-ract="n:${n}" aria-pressed="${+cfg.rtN === n}"${RT.run ? ' disabled' : ''}>${n}</button>`).join('') + '</span></span></div>';
   h += '<div class="btnrow">';
   if (RT.run) h += `<button data-ract="stop"${RT.stop ? ' disabled' : ''}>${RT.stop ? 'Stopping…' : 'Stop'}</button>`;
-  else h += `<button data-ract="start"${busyText || locked ? ' disabled' : ''}>${RT.done ? 'Run again' : 'Run range test'}</button>`;
+  else h += `<button data-ract="start"${busyText || locked ? ' disabled' : ''}>${RT.done ? 'Run again' : 'Run signal range test'}</button>`;
   h += '</div>';
   if (locked && !RT.run) h += '<p class="muted">Finish or cancel the calibration first.</p>';
   if (RT.run) {

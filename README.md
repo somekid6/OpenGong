@@ -22,3 +22,13 @@ The receiver's web app on a phone and a laptop: the plate to scale, numbered hit
 ## Safety
 
 Follow your plate maker's rating for the round you shoot. [System design §10](docs/System-Design.md#10-ammunition-and-safety-read-before-shooting) lists commonly cited plate thicknesses and minimum distances per caliber. Never use steel-core or penetrator rounds. Keep all electronics and cables fully behind the plate under a steel shield.
+
+## References and acknowledgements
+
+OpenGong builds on the work of **Matthew Waterman and Donato Salazar**, whose Northern Illinois University senior design project showed that an accurate electronic target can be built from cheap, easy-to-find parts. Thank you both for publishing your research and source code so others could build on it.
+
+- M. Waterman and D. Salazar, "Electronic Target," Senior Design II, Northern Illinois University (advisor: Dr. Abul Azad), December 8, 2011. [Paper (PDF)](docs/Reference%20Materials/Waterman%20Salazar%20-%20Electronic%20Targets.pdf) · [Presentation with notes (PDF)](docs/Reference%20Materials/Waterman%20Salazar%20Tech%20478%20Presentation%20With%20Notes.pdf). These were first published on etarg.net, which is no longer online, so copies are kept here.
+
+Their paper sets out the core approach this project uses: timing the impact wave at piezo sensors on a hard target with threshold comparators, then locating the hit by time-difference-of-arrival multilateration. It also names the error sources this design sets out to remove. [System design §1](docs/System-Design.md#1-summary) compares the two.
+
+AI assistance: [Claude](https://www.anthropic.com/claude), by Anthropic, helped with the design analysis, firmware, documentation and diagrams. This project wouldn't have been possible with my personal time constraints and skill level.

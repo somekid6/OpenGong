@@ -1,7 +1,5 @@
 # OpenGong — Steel-Target Impact Multilateration System Design
 
-Nov 12, 2026 (wireless range and per-caliber ammunition guidance added; Nov 11: jig section revised for one ring on rectangular and round plates)
-
 ## 1. Summary
 
 The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$80–110**, and the two radio boards are the biggest item.

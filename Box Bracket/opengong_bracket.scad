@@ -31,7 +31,7 @@ tube = 25;          // outside size (25 mm or 1 in)
 tube_wall = 2;      // the bolt passes through the bore, so the bore must clear it
 
 /* [Flat bar] */
-bar_w = 25;         // drop strap width (25 x 5 mm aluminium, or 25 x 3 mm steel)
+bar_w = 25;         // drop strap width (aluminium 25 x 5-6 mm recommended; 25 x 3 mm if steel)
 cross_w = 30;       // dual: crossbar width (room for two M5 bolts to the drop strap)
 bar_t = 5;
 pad_t = 3;          // rubber pad between the tube and the steel

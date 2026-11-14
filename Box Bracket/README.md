@@ -17,7 +17,7 @@ These are sketches to adapt, not drawings for one plate. Hanger hole positions v
 | One hanger hole | **Tube + strap.** The hanger bolt clamps a square tube spacer against the steel and a straight strap against the tube. The box hangs from the strap. | 25 mm square tube, 32 mm long. 25 × 5 mm flat bar, 169 mm long. |
 | Two hanger holes | **Tubes + crossbar + drop strap.** Each hanger bolt clamps its own tube. A crossbar spans both tubes, and a drop strap bolts to the crossbar's centre with two M5 bolts and carries the box. | Two 25 mm square tubes, 27 mm long. 30 × 5 mm flat bar, 106 mm long. 25 × 5 mm flat bar, 155 mm long. |
 
-Flat bar can be aluminium (25 × 5 mm) or steel (25 × 3 mm is enough). Tube wall about 2 mm; the bolt passes through the bore without touching it.
+**Use aluminium.** It won't rust, cuts with a hacksaw, drills easily, and its low weight keeps the plate hanging closer to vertical. Use flat bar 5–6 mm (3/16–1/4 in) thick, 6061 if the store has it; thinner aluminium can crack at the holes after many hits. Square tube with a 1.6 mm (1/16 in) wall or thicker is fine, since it only takes the bolt's clamping load; the bolt passes through the bore without touching it. Steel works too (25 × 3 mm bar is enough), but paint or galvanize it, including the cut ends and holes.
 
 Both brackets:
 
@@ -30,7 +30,7 @@ The single-hole strap hangs from one bolt, so it can turn about it. Tighten the 
 
 ## Bolt stack
 
-From the back face outward: rubber pad (3 mm), square tube, the flat bar with a rubber top-hat bushing in its oversize hole, a rubber washer, a steel fender washer, and a nyloc nut. The bushing keeps the bolt off the bar, so no metal touches metal at the bracket.
+From the back face outward: rubber pad (3 mm), square tube, the flat bar with a rubber top-hat bushing in its oversize hole, a rubber washer, a steel fender washer, and a nyloc nut. The rubber keeps the aluminium off the steel plate, bolt and washer, so they can't corrode each other in the wet. The only metal-to-metal contact left is the small M4/M5 screws through the box lugs and the crossbar: use zinc-plated or stainless ones, with a nylon washer or a dab of grease under each head.
 
 The hanger bolt has to pass through the tube, so it's longer than the one the plate came with: at least 66 mm under the head for the single-hole bracket and 61 mm for the two-hole one at the defaults. The console prints the length for your settings.
 

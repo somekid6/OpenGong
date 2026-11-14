@@ -62,13 +62,14 @@ Use a fine-tip iron, flux and 0.5 mm solder. Fit low parts first so the board si
 
 ## 4. Bring-up
 
-Do this **before** plugging in the Heltec:
+Bring the board up in this order:
 
-1. With a meter, check that +3V3A (TP8) to GND (TP9) isn't a short.
-2. Plug in the Heltec (OLED up, USB-C at the board edge), attach the LoRa antenna, and power it over USB.
-3. Measure TP8 ≈ 3.3 V, TP6 (VMID) ≈ 1.65 V, and TP7 (VTH). Turn RV1 until VTH sits a little above VMID: the comparators fire when an amplifier output rises past VTH, and the amplifier rests at VMID.
-4. Follow the firmware [bring-up and calibration steps](../../firmware/README.md). Raise VTH until the comparators stop firing on noise, then add a little margin ([Wiring Diagram §3](../../docs/Wiring-Diagram.md#3-shared-bias-threshold-and-power)).
-5. TP1–TP5 (AMP1–AMP5) are the amplifier outputs, the best place to watch each sensor with a scope.
+1. **Attach the LoRa antenna before powering.** Transmitting into an open U.FL connector can damage the radio.
+2. With a meter, check that +3V3A (TP8) to GND (TP9) isn't a short.
+3. Plug in the Heltec (OLED up, USB-C at the board edge) and power it over USB.
+4. Measure TP8 ≈ 3.3 V, TP6 (VMID) ≈ 1.65 V, and TP7 (VTH). Turn RV1 until VTH sits a little above VMID: the comparators fire when an amplifier output rises past VTH, and the amplifier rests at VMID.
+5. Follow the firmware [bring-up and calibration steps](../../firmware/README.md). Raise VTH until the comparators stop firing on noise, then add a little margin ([Wiring Diagram §3](../../docs/Wiring-Diagram.md#3-shared-bias-threshold-and-power)).
+6. TP1–TP5 (AMP1–AMP5) are the amplifier outputs, the best place to watch each sensor with a scope.
 
 Wiring the sensors: each terminal's **left** screw is the signal (piezo ceramic/centre electrode) and the **right** screw is GND (cable shield and brass). Tie each shield at the board end only. Use thin 2-core shielded cable, one core for the ceramic and one for the brass; see [Wiring Diagram §6](../../docs/Wiring-Diagram.md#6-wiring-notes) for the cable spec.
 

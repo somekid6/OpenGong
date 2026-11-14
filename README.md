@@ -7,18 +7,19 @@ Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impa
 
 ## Build guide
 
-The [OpenGong wiki](https://github.com/somekid6/OpenGong/wiki) walks through the whole build in ten steps. Start with [Step 1: Parts and Tools](https://github.com/somekid6/OpenGong/wiki/Step-1-Parts-and-Tools).
+The [OpenGong wiki](https://github.com/somekid6/OpenGong/wiki) walks through the whole build in eleven steps. Start with [Step 1: Get the Project Files](https://github.com/somekid6/OpenGong/wiki/Step-1-Get-the-Project-Files).
 
-1. [Parts and Tools](https://github.com/somekid6/OpenGong/wiki/Step-1-Parts-and-Tools)
-2. [Order the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-2-Order-the-Analog-Board)
-3. [Print the Jig and Covers](https://github.com/somekid6/OpenGong/wiki/Step-3-Print-the-Jig-and-Covers)
-4. [Assemble the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-4-Assemble-the-Analog-Board)
-5. [Flash the Firmware](https://github.com/somekid6/OpenGong/wiki/Step-5-Flash-the-Firmware)
-6. [Glue and Wire the Sensors](https://github.com/somekid6/OpenGong/wiki/Step-6-Glue-and-Wire-the-Sensors)
-7. [Bench Bring-Up](https://github.com/somekid6/OpenGong/wiki/Step-7-Bench-Bring-Up)
-8. [Calibrate](https://github.com/somekid6/OpenGong/wiki/Step-8-Calibrate)
-9. [Enclosure and Mounting](https://github.com/somekid6/OpenGong/wiki/Step-9-Enclosure-and-Mounting)
-10. [Range Setup and First Shots](https://github.com/somekid6/OpenGong/wiki/Step-10-Range-Setup-and-First-Shots)
+1. [Get the Project Files](https://github.com/somekid6/OpenGong/wiki/Step-1-Get-the-Project-Files)
+2. [Parts and Tools](https://github.com/somekid6/OpenGong/wiki/Step-2-Parts-and-Tools)
+3. [Order the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-3-Order-the-Analog-Board)
+4. [Print the Jig and Covers](https://github.com/somekid6/OpenGong/wiki/Step-4-Print-the-Jig-and-Covers)
+5. [Assemble the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-5-Assemble-the-Analog-Board)
+6. [Flash the Firmware](https://github.com/somekid6/OpenGong/wiki/Step-6-Flash-the-Firmware)
+7. [Glue and Wire the Sensors](https://github.com/somekid6/OpenGong/wiki/Step-7-Glue-and-Wire-the-Sensors)
+8. [Bench Bring-Up](https://github.com/somekid6/OpenGong/wiki/Step-8-Bench-Bring-Up)
+9. [Calibrate](https://github.com/somekid6/OpenGong/wiki/Step-9-Calibrate)
+10. [Enclosure and Mounting](https://github.com/somekid6/OpenGong/wiki/Step-10-Enclosure-and-Mounting)
+11. [Range Setup and First Shots](https://github.com/somekid6/OpenGong/wiki/Step-11-Range-Setup-and-First-Shots)
 
 If something doesn't work, see [Troubleshooting](https://github.com/somekid6/OpenGong/wiki/Troubleshooting) for symptoms and fixes covering bring-up, calibration and the radio link.
 

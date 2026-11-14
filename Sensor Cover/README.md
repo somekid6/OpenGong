@@ -22,7 +22,7 @@ These figures are estimates from the design. Check the pods after your first liv
 | `part` value | Qty | What it is |
 | --- | --- | --- |
 | `pod` | 5, plus a spare | Sensor cover pod. Set `pod_label` to `S1`…`S5` to engrave each one. |
-| `clip` | 2–3 | Magnetic cable clip for long runs, typically S3, S4 and S5 |
+| `clip` | 2–3 | Magnetic cable clip for long runs, typically S3, S4 and S5. One pot magnet holds it to the plate. The cables lie in an open channel on top, and two cable ties through tunnels in the body hold them down. |
 | `assembly` | — | Preview only. Don't print it. |
 
 A pod is about 52 × 68 × 12 mm and a clip about 27 × 30 × 13 mm, so both print on any bed.
@@ -86,7 +86,9 @@ Fit the pods once the sensors are glued, soldered and potted ([System Design §4
 3. **Place it.** Centre the cap over the sensor and lower the pod straight down. The magnets snap on hard, so keep your fingers off the underside.
 4. **Check the clearance.** Look under the rim. The silicone, the leads and the slack loop must not touch the pod anywhere. Anything that touches would pass pod vibration to the sensor.
 5. **Tie the cable.** Thread a cable tie down one tie slot and under the cable through the recess, then up the other slot, and pull it tight on the roof. This is optional for rimfire and handgun rounds and recommended for rifle.
-6. **Add clips.** Fit a clip on any run that would otherwise lie loose against the plate for more than about 10 cm. Lay the cables in the saddle and tie them through the two tunnels. Then route the cables down and back to the box ([System Design §4.2](../docs/System-Design.md#42-mounting-and-enclosure)).
+6. **Add clips.** Fit a clip on any run that would otherwise lie loose against the plate for more than about 10 cm. Then route the cables down and back to the box ([System Design §4.2](../docs/System-Design.md#42-mounting-and-enclosure)).
+   - **The tunnels.** Each clip has two flat tie tunnels that run across its full width, between the magnet and the cable channel, one either side of the magnet bolt. Unlike the pod's clamp groove, the channel doesn't grip the cable, so the two ties are the only thing that holds the cables in.
+   - **Tie the cables.** Put the clip on the plate where you want it. Lay the cables side by side in the channel on top. Then, for each tunnel, push a tie in one side and out the other, bring both ends up the outside walls and over the cables, and pull it snug. Don't crush the cables. Trim the tails.
 7. **Mark the position.** Draw a paint-pen line from each pod's edge onto the steel, so you can see later whether it has moved.
 
 The rim stands 1.5 mm off the steel all round, so water drains out and the edge can't rattle. Don't seal the gap with foam or tape: anything that presses between the pod and the plate pushes against the magnets.

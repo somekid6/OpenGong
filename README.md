@@ -5,7 +5,26 @@
 
 Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impacts to within about 5 mm by time-difference-of-arrival multilateration. An ESP32-S3 (Heltec WiFi LoRa 32 V3) timestamps each sensor in hardware, solves the impact position, and sends the coordinates over LoRa to a receiver at the firing line. The link is designed for 500 m, and about 1 km is a realistic planning figure on open ground. The estimated limit is 2–4 km on flat, open ground with clear line of sight. These are link-budget estimates, so run a [signal range test](docs/System-Design.md#96-signal-range-test) at your own site. It works with any single-projectile round the plate is rated for, from .22 LR to full-power rifle; shotgun pellets are not supported.
 
-## Documents
+## Build guide
+
+The [OpenGong wiki](https://github.com/somekid6/OpenGong/wiki) walks through the whole build in ten steps. Start with [Step 1: Parts and Tools](https://github.com/somekid6/OpenGong/wiki/Step-1-Parts-and-Tools).
+
+1. [Parts and Tools](https://github.com/somekid6/OpenGong/wiki/Step-1-Parts-and-Tools)
+2. [Order the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-2-Order-the-Analog-Board)
+3. [Print the Jig and Covers](https://github.com/somekid6/OpenGong/wiki/Step-3-Print-the-Jig-and-Covers)
+4. [Assemble the Analog Board](https://github.com/somekid6/OpenGong/wiki/Step-4-Assemble-the-Analog-Board)
+5. [Flash the Firmware](https://github.com/somekid6/OpenGong/wiki/Step-5-Flash-the-Firmware)
+6. [Glue and Wire the Sensors](https://github.com/somekid6/OpenGong/wiki/Step-6-Glue-and-Wire-the-Sensors)
+7. [Bench Bring-Up](https://github.com/somekid6/OpenGong/wiki/Step-7-Bench-Bring-Up)
+8. [Calibrate](https://github.com/somekid6/OpenGong/wiki/Step-8-Calibrate)
+9. [Enclosure and Mounting](https://github.com/somekid6/OpenGong/wiki/Step-9-Enclosure-and-Mounting)
+10. [Range Setup and First Shots](https://github.com/somekid6/OpenGong/wiki/Step-10-Range-Setup-and-First-Shots)
+
+If something doesn't work, see [Troubleshooting](https://github.com/somekid6/OpenGong/wiki/Troubleshooting) for symptoms and fixes covering bring-up, calibration and the radio link.
+
+## Reference documents
+
+The documents below hold the design reasoning, schematics and source files that the build guide draws on.
 
 - [System design](docs/System-Design.md): architecture, accuracy budget, sensors, mounting and enclosure, solver, calibration, radio link and range, ammunition and safety, bill of materials and build plan.
 - [Wiring diagram](docs/Wiring-Diagram.md): system wiring, per-channel circuit, shared bias/threshold/power, Heltec pin map and channel-to-part map.

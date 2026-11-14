@@ -336,7 +336,7 @@ These rules apply to every round:
 | USB power bank | 1 | $0–20 |
 | IP65/IP67 enclosure (~120×90×60 mm), cable glands, breather vent, bulkhead SMA pigtail, desiccant (section 4.2) | — | $20–30 |
 | Small weatherproof box for the power bank, flat bar and rubber washers for the box bracket | — | $10–15 |
-| Receiver case (optional): printed personal case, or a range-mounted IP65/IP67 box with USB-C panel socket, vent and coax (section 4.2) | — | $0–30 |
+| Receiver case (optional, in addition to the target enclosure above): printed personal case, or a range-mounted IP65/IP67 box with USB-C panel socket, vent and coax (section 4.2) | — | $0–30 |
 | **Total** | | **~$130–195** (plus power bank, steel shield and antenna mast) |
 
 A cheap USB oscilloscope (about $60–80) is optional but very helpful for seeing the sensor signals during bring-up.

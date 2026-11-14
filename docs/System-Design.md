@@ -98,7 +98,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Antenna:** put it on a 1–2 m mast (section 9.3). Run flexible coax such as RG316 to the box, with a slack loop where it crosses to the swinging part. An antenna on the box would sit behind the plate, and steel in the path costs 20 dB or more (section 9.2).
 - **Power bank:** keep it in its own small weatherproof box, with a slack loop in the power cable. A single power cable tolerates flexing far better than the sensor cables do. Don't put a LiPo on the swinging assembly, because a fragment hit on a lithium pouch can start a fire.
 
-**Enclosure:**
+**Target Enclosure:**
 
 - **Box:** an IP65/IP67 polycarbonate or ABS junction box, about 120×90×60 mm, with mounting flanges outside the seal.
 - **Cable glands, bottom face only,** so water drips off instead of running in. Use M12/PG7 glands for 3–6.5 mm cable, or one M20 gland with a multi-hole insert for all five sensor cables. Leave a drip loop on each cable.
@@ -106,6 +106,11 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Vent and desiccant:** fit an ePTFE breather vent (M12) and add a silica gel pack. A sealed box that heats and cools every day pulls humid air past its gaskets, and the condensation does more damage than rain.
 - **Shock-proofing:** screw the analog board to standoffs and zip-tie or clip the Heltec into its header. Glue the U.FL connector down with hot glue or RTV, since it pops off under repeated shock. Conformal-coat both boards and pad empty space with foam.
 - **Display:** a clear lid lets you read the OLED and status LED. Without one, the receiver's web app shows everything you need.
+
+**Receiver enclosure:** two options, described in the wiki's Step 10.8.
+
+- **Personal (carried to and from the range):** a ready-made 3D-printed Heltec V3 case, of which there are many, with an SMA pigtail hole and an optional Li-ion cell on the Heltec's own charger. With Wi-Fi always on it draws roughly 100 mA (an estimate), so a 3000 mAh cell lasts about a day.
+- **Mounted (stays at the range):** built to the same outdoor standard as the target box (IP65/IP67, bottom-face glands, O-ring bulkhead SMA, vent, desiccant, conformal coat), but it holds only the Heltec, so it can be smaller (about 100×70×50 mm). It must be **plastic, not metal**, because the Wi-Fi antenna is on the board. The dipole goes on a 2–3 m pole on coax. Leave **no battery** in it. Power it on the day through an IP67 panel-mount USB-C socket from a power bank or a range outlet. Give it its own Wi-Fi name and password, since the web app has no other access control.
 
 ### 4.3 Sensor covers (PETG, model: `opengong_cover.scad`)
 
@@ -331,6 +336,7 @@ These rules apply to every round:
 | USB power bank | 1 | $0–20 |
 | IP65/IP67 enclosure (~120×90×60 mm), cable glands, breather vent, bulkhead SMA pigtail, desiccant (section 4.2) | — | $20–30 |
 | Small weatherproof box for the power bank, flat bar and rubber washers for the box bracket | — | $10–15 |
+| Receiver case (optional): printed personal case, or a range-mounted IP65/IP67 box with USB-C panel socket, vent and coax (section 4.2) | — | $0–30 |
 | **Total** | | **~$130–195** (plus power bank, steel shield and antenna mast) |
 
 A cheap USB oscilloscope (about $60–80) is optional but very helpful for seeing the sensor signals during bring-up.

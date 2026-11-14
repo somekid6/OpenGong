@@ -1,0 +1,33 @@
+OpenGong
+Copyright (c) 2026 somekid6, also known as some_kid6
+                  (https://github.com/somekid6/OpenGong)
+
+OpenGong is made of three kinds of work, each under its own license. All three
+let you use, modify, share and sell the work, as long as you credit the
+original author and keep the license notice.
+
+  Hardware designs   hardware/, Placement Jig/, Sensor Cover/
+                     CERN Open Hardware Licence v2 - Permissive (CERN-OHL-P-2.0)
+                     Full text: LICENSES/CERN-OHL-P-2.0.txt
+
+  Firmware and app   firmware/
+                     MIT License (MIT)
+                     Full text: firmware/LICENSE
+
+  Documentation      docs/, README.md and all other files
+  and images         Creative Commons Attribution 4.0 International (CC-BY-4.0)
+                     Full text: LICENSES/CC-BY-4.0.txt
+
+How to give credit
+------------------
+If you use, build or adapt OpenGong, credit it like this (or similar), in
+your documentation, product page or about screen:
+
+    Based on OpenGong by somekid6 (some_kid6) - https://github.com/somekid6/OpenGong
+
+and note whether you changed it.
+
+Exceptions
+----------
+The papers in docs/Reference Materials/ are the work of their authors
+(M. Waterman and D. Salazar) and are not covered by these licenses.

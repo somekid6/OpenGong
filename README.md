@@ -61,3 +61,17 @@ OpenGong builds on the work of **Matthew Waterman and Donato Salazar**, whose No
 Their paper sets out the core approach this project uses: timing the impact wave at piezo sensors on a hard target with threshold comparators, then locating the hit by time-difference-of-arrival multilateration. It also names the error sources this design sets out to remove. [System design §1](docs/System-Design.md#1-summary) compares the two.
 
 AI assistance: [Claude](https://www.anthropic.com/claude), by Anthropic, helped with the design analysis, firmware, documentation and diagrams. This project wouldn't have been possible with my personal time constraints and skill level.
+
+## License
+
+You can use, modify, share and sell OpenGong, as long as you credit the original author and keep the license notice. Each part of the project has a license suited to it:
+
+| Part | License |
+|---|---|
+| Hardware designs ([hardware](hardware/), [Placement Jig](Placement%20Jig/), [Sensor Cover](Sensor%20Cover/)) | [CERN-OHL-P v2](LICENSES/CERN-OHL-P-2.0.txt) |
+| Firmware and web app ([firmware](firmware/)) | [MIT](firmware/LICENSE) |
+| Documentation, images and everything else | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
+
+To give credit, write something like: *Based on OpenGong by somekid6 (some_kid6) – https://github.com/somekid6/OpenGong*, and say whether you changed it. See [LICENSE](LICENSE) for details.
+
+The third-party papers in [docs/Reference Materials](docs/Reference%20Materials/) remain the work of their authors and are not covered by these licenses.

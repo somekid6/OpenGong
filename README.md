@@ -32,6 +32,7 @@ The documents below hold the design reasoning, schematics and source files that 
 - [Analog board PCB](hardware/analog-board/README.md): ready-to-order gerbers, BOM, assembly and bring-up for the 5-channel front end that the Heltec V3 plugs into, plus the KiCad project.
 - [Placement jig](Placement%20Jig/README.md): the OpenSCAD sensor and punch-guide jig for rectangular and round plates, covering parameters, export, printing, assembly and calibration points.
 - [Sensor covers](Sensor%20Cover/README.md): OpenSCAD cover pods and cable clips held on by rubber-coated pot magnets, with the magnet and hardware list, printing, fitting and removal for calibration.
+- [Box brackets](Box%20Bracket/README.md): example OpenSCAD sketches of the bracket that hangs the electronics box from the plate's hanger bolts, for plates with one or two hanger holes. Square tube spacers and straight aluminium flat bar, with no bending, and a preview that checks clearance to the sensor pods. Custom fit to your plate.
 - [Firmware](firmware/README.md): ESP32-S3 target (hardware capture, solver, on-board calibration, LoRa) and receiver firmware, with build, bring-up and calibration steps. The receiver hosts a [web app](firmware/README.md#web-app) over its own Wi-Fi that draws your plate to scale with the hits and an MOA/MIL grid on any phone or laptop.
 
 ![System wiring](docs/images/system-wiring.svg)
@@ -68,7 +69,7 @@ You can use, modify, share and sell OpenGong, as long as you credit the original
 
 | Part | License |
 |---|---|
-| Hardware designs ([hardware](hardware/), [Placement Jig](Placement%20Jig/), [Sensor Cover](Sensor%20Cover/)) | [CERN-OHL-P v2](LICENSES/CERN-OHL-P-2.0.txt) |
+| Hardware designs ([hardware](hardware/), [Placement Jig](Placement%20Jig/), [Sensor Cover](Sensor%20Cover/), [Box Bracket](Box%20Bracket/)) | [CERN-OHL-P v2](LICENSES/CERN-OHL-P-2.0.txt) |
 | Firmware and web app ([firmware](firmware/)) | [MIT](firmware/LICENSE) |
 | Documentation, images and everything else | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
 

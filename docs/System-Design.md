@@ -40,7 +40,7 @@ Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32'
 - **Surface prep:** lightly scuff the disc's brass face with 400–600 grit until the shine is dulled. Keep it flat and gentle, because the disc bends easily, and don't sand the ceramic side or its silvered electrode. Just before gluing, wipe the brass face and the sanded steel with isopropyl alcohol. After that, handle discs by the edge or the ceramic side only. Glue the same day you sand, because bare AR500 starts to oxidise within hours. A clean bond matters because repeated shock slowly works sensors loose ([§11](#11-main-risks-and-fixes)).
 - **Layout:** 5 sensors evenly spaced on a **120 mm radius** pentagon. A spoke points straight up and sensor S4 sits straight down (back-face view). The scoring zone is inside the ring. A rectangle-only build can use a 140 mm ring (`ring_r = 140`), but it won't fit a 12 in round plate.
 - **Placement jig:** see 4.1. Don't drill or weld the AR500; heat ruins its hardness.
-- **Protective cover:** a separate printed piece with sensor caps, cable channels and foam pads, held to the plate by embedded neodymium magnets. Pot each sensor's solder joints in silicone.
+- **Protective covers:** pot each sensor's solder joints in silicone, then cover each sensor with a printed pod that also clamps its cable. Rubber-coated pot magnets hold the pods to the plate (see 4.3).
 - **Cabling:** thin 2-core shielded cable with a braided or spiral shield (2-core shielded microphone/instrument cable, 24–28 AWG, about 3–4.5 mm OD), equal lengths under 30 cm from each sensor to the amplifier box behind the plate.
 - **Plate thickness:** the sensors are on the back, so the solver includes the plate thickness in each sensor's path length. Store the thickness per plate in firmware.
 
@@ -93,7 +93,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Bracket:** hang a short steel or aluminum flat-bar bracket from the **same hanger bolt(s) as the chains**, with rubber washers or bushings at the joint. Isolating the box doesn't affect timing, which comes only from the sensors bonded to the steel.
 - **Clearance:** hold the box **3–5 cm off the back face** so it can never touch the plate, even mid-swing.
 - **Position:** center the box below the hanger and inside the plate's outline as seen from the firing line. Cover it with the steel shield (section 10.4) and route the cables down and back.
-- **Not on the cover:** don't hang the box from the magnetic sensor cover. The plate face takes the most violent shock, and the magnets will slip.
+- **Not on the covers:** don't hang the box from the magnetic sensor covers. The plate face takes the most violent shock, and magnets sized for a 55 g pod will slip under a box.
 
 **Fixed post, to one side and behind cover:**
 
@@ -108,6 +108,17 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 - **Vent and desiccant:** fit an ePTFE breather vent (M12) and add a silica gel pack. A sealed box that heats and cools every day pulls humid air past its gaskets, and the condensation does more damage than rain.
 - **Shock-proofing:** screw the analog board to standoffs and zip-tie or clip the Heltec into its header. Glue the U.FL connector down with hot glue or RTV, since it pops off under repeated shock. Conformal-coat both boards and pad empty space with foam.
 - **Display:** a clear lid lets you read the OLED and status LED. Without one, the receiver's web app shows everything you need.
+
+### 4.3 Sensor covers (PETG, model: `opengong_cover.scad`)
+
+Each sensor gets its own **cover pod**, and optional **cable clips** hold the long cable runs. Build, fitting and removal steps are in the [sensor cover README](../Sensor%20Cover/README.md).
+
+- **Pod:** a cap over the potted disc that touches neither the disc nor its leads, a channel for the slack loop, and a clamp that grips the cable 30 mm from the sensor with an optional cable tie. Turn each pod so its cable exit points at the box. The rim stands 1.5 mm off the steel, so water drains out and the edge can't rattle.
+- **Magnets:** two rubber-coated neodymium pot magnets per pod (Ø22 mm, M4 thread, 5 kg or more), bolted in with threadlocker or nyloc nuts. The steel cup protects the brittle magnet from shock, and the rubber face stops the pod creeping across the plate.
+- **Why separate pods:** a pod weighs about 55 g, so its two magnets hold against an estimated 180 g of acceleration straight off the plate and about 90 g sideways. A hit drives the plate backward into the pods; only the rebound and ringing pull them away. One cover spanning all five sensors would be heavier, more prone to rattling and too big for most print beds.
+- **Timing:** a pod touches the steel only through the rubber faces of its magnets, and rubber passes almost none of the stress wave. So the pods come off for calibration and go back on for shooting, with no effect on timing.
+- **Cable clips:** a one-magnet saddle that holds up to five cables flat to the plate with two cable ties. Use one on any run that would otherwise lie loose against the steel. A cable slapping the plate is a contact, and contacts make phantom shots.
+- **No foam:** don't seal the pods to the plate with foam or tape. Anything compressed between pod and plate pushes against the magnets.
 
 ## 5. Analog front end (per channel)
 
@@ -317,11 +328,12 @@ These rules apply to every round:
 | [Analog board PCB](../hardware/analog-board/README.md) (JLCPCB/PCBWay, 5 pcs) or perfboard | 1 | $5–15 |
 | 2-core shielded cable (braided/spiral shield, ~2 m), connectors, epoxy | — | $10 |
 | 915 MHz dipole antennas | 2 | $10 |
-| Neodymium magnets, filament for jig and cover | — | $5 |
+| Rubber-coated neodymium pot magnets, Ø22 mm, M4 thread, ≥5 kg pull (sensor covers, section 4.3) | 15 | $20–40 |
+| PETG filament for jig and covers, M4 screws or nuts, washers, threadlocker, cable ties | — | $5 |
 | USB power bank | 1 | $0–20 |
 | IP65/IP67 enclosure (~120×90×60 mm), cable glands, breather vent, bulkhead SMA pigtail, desiccant (section 4.2) | — | $20–30 |
 | Small weatherproof box for the power bank, flat bar and rubber washers for the box bracket | — | $10–15 |
-| **Total** | | **~$110–155** (plus power bank, steel shield and antenna mast) |
+| **Total** | | **~$130–195** (plus power bank, steel shield and antenna mast) |
 
 A cheap USB oscilloscope (about $60–80) is optional but very helpful for seeing the sensor signals during bring-up.
 
@@ -331,6 +343,6 @@ A cheap USB oscilloscope (about $60–80) is optional but very helpful for seein
 2. **Breadboard 2 channels** of the front end. Check that trigger times repeat within about 200 ns for repeated strikes at the same spot.
 3. **Print the jig:** the test bar first, then the ring and the adapter for your plate shape. Test-fit it, then glue the 5 sensors to the real plate (4.1).
 4. **Build the 5-channel board** ([order and assemble the PCB](../hardware/analog-board/README.md)) and flash the ESP32-S3 capture and solver firmware.
-5. **Calibrate** with the punch guides and check against the held-out points.
+5. **Calibrate** with the punch guides and check against the held-out points. Then fit the sensor cover pods and cable clips (4.3).
 6. **Add the LoRa link** and receiver app, then run a signal range test (section 9.6) at 500 m.
 7. **Live fire** at a rated distance and compare reported positions to the splash marks.

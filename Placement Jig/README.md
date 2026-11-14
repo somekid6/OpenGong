@@ -75,7 +75,7 @@ Add `-D` overrides for any parameters you changed, such as `-D disc_d=12.7`, or 
 ## 3. Print
 
 1. **Test bar first.** Print `test_bar` in the same material and with the same settings you'll use for the jig. Measure its length with calipers. Then set the XY scale of every jig part in your slicer to 200 ÷ measured length. For example, a bar measuring 199.4 mm needs a scale of 100.3%. The two 3 mm holes are 190 mm apart, centre to centre, if you'd rather measure those.
-2. **Material.** PETG is recommended. It stays springy and tough, so the round-plate flex hook keeps its preload, the puzzle joints flex as they press together, and the punch guides don't crack. It also holds its shape up to about 75 °C, which matters on a plate left in the sun.
+2. <a id="material"></a>**Material.** PETG is recommended. It stays springy and tough, so the round-plate flex hook keeps its preload, the puzzle joints flex as they press together, and the punch guides don't crack. It also holds its shape up to about 75 °C, which matters on a plate left in the sun.
    - **PLA:** fine for a rectangular plate if the jig is kept out of heat, since PLA softens at about 55–60 °C. For a round plate, print `round_top_flex` in PETG: a PLA beam is brittle and slowly loses its spring under load. Print a test bar in each material and scale each part from its own bar.
    - **ABS/ASA:** fine. These shrink and warp more, but the test-bar scaling makes up for the shrinkage.
    - **Avoid** TPU or other flexible filaments, which are too soft to hold positions, and silk PLA, which is weak between layers.
@@ -120,7 +120,7 @@ Keep the jig: it goes back on for calibration.
 
 ## 7. Calibration points
 
-Re-seat the jig exactly as in step 5 and fire an automatic center punch through each guide, 3–5 times per guide. Round bosses are the fitting points, and square bosses are the held-out checks. The punch strikes the back face, the same face as the sensors; the firmware's `cal start` assumes this by default.
+If the [sensor cover pods](../Sensor%20Cover/README.md#5-removing-the-pods-for-calibration) are fitted, take them off first. Re-seat the jig exactly as in step 5 and fire an automatic center punch through each guide, 3–5 times per guide. Round bosses are the fitting points, and square bosses are the held-out checks. The punch strikes the back face, the same face as the sensors; the firmware's `cal start` assumes this by default.
 
 Coordinates for the default model are in mm, front view, with the origin at the ring centre and +y up:
 

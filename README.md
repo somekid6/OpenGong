@@ -8,6 +8,7 @@ Five piezo sensors bonded to the back of an AR500 steel plate locate bullet impa
 - [Wiring diagram](docs/Wiring-Diagram.md): system wiring, per-channel circuit, shared bias/threshold/power, Heltec pin map and channel-to-part map.
 - [Analog board PCB](hardware/analog-board/README.md): ready-to-order gerbers, BOM, assembly and bring-up for the 5-channel front end that the Heltec V3 plugs into, plus the KiCad project.
 - [Placement jig](Placement%20Jig/README.md): the OpenSCAD sensor and punch-guide jig for rectangular and round plates, covering parameters, export, printing, assembly and calibration points.
+- [Sensor covers](Sensor%20Cover/README.md): OpenSCAD cover pods and cable clips held on by rubber-coated pot magnets, with the magnet and hardware list, printing, fitting and removal for calibration.
 - [Firmware](firmware/README.md): ESP32-S3 target (hardware capture, solver, on-board calibration, LoRa) and receiver firmware, with build, bring-up and calibration steps. The receiver hosts a [web app](firmware/README.md#web-app) over its own Wi-Fi that draws your plate to scale with the hits and an MOA/MIL grid on any phone or laptop.
 
 ![System wiring](docs/images/system-wiring.svg)

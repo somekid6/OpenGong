@@ -35,7 +35,7 @@ Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32'
 
 - **Sensors:** 12–15 mm bare brass piezo discs (about $0.30 each). Smaller discs give a sharper arrival. Buy 20 so you have spares.
 - **Bonding:** sand the steel to bright metal and glue the brass side down with a **thin, rigid** layer of cyanoacrylate or hard-setting epoxy (e.g., JB Weld). Keep foam, tape and plastic out of the path between steel and sensor.
-- **Surface prep:** lightly scuff the disc's brass face with 400–600 grit until the shine is dulled. Keep it flat and gentle, because the disc bends easily, and don't sand the ceramic side or its silvered electrode. Just before gluing, wipe the brass face and the sanded steel with isopropyl alcohol. After that, handle discs by the edge or the ceramic side only. Glue the same day you sand, because bare AR500 starts to oxidise within hours. A clean bond matters because repeated shock slowly works sensors loose ([§11](#11-main-risks-and-fixes)).
+- **Surface prep:** lightly scuff the piezo disc's brass face with 400–600 grit until the shine is dulled. Keep it flat and gentle, because the disc bends easily, and don't sand the ceramic side or its silvered electrode. Just before gluing, wipe the brass face and the sanded steel with isopropyl alcohol. After that, handle discs by the edge or the ceramic side only. Glue the same day you sand, because bare AR500 starts to oxidise within hours. A clean bond matters because repeated shock slowly works sensors loose ([§11](#11-main-risks-and-fixes)).
 - **Layout:** 5 sensors evenly spaced on a **120 mm radius** pentagon. A spoke points straight up and sensor S4 sits straight down (back-face view). The scoring zone is inside the ring. A rectangle-only build can use a 140 mm ring (`ring_r = 140`), but it won't fit a 12 in round plate.
 - **Placement jig:** see 4.1. Don't drill or weld the AR500; heat ruins its hardness.
 - **Protective covers:** pot each sensor's solder joints in silicone, then cover each sensor with a printed pod that also clamps its cable. Rubber-coated pot magnets hold the pods to the plate (see 4.3).
@@ -51,7 +51,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 **Core ring (5 segments + hub)**
 - **Segments:** each holds one sensor pocket (engraved S1–S5) and one spoke. Segment S1 carries an "up" arrow on the top spoke. Cuts fall 18° from both sensors and spokes, so no pocket is split. Each segment fits in about 129 × 129 mm, so the ring prints on any common bed.
 - **Joints:** full-height puzzle knobs, an 8 mm knob on a 4.5 mm neck with 0.15 mm clearance, at ring cuts, spoke-to-hub and lug-to-adapter. They print flat with no supports and lock in-plane. Press them together on a flat surface; a drop of CA is optional.
-- **Sensor pockets:** the bore is the disc diameter + 1.2 mm, with three 2 mm ribs at 120° that stand 0.6 mm proud. This leaves 0.15 mm radial clearance on the disc. A 0.8 mm chamfer at the plate face keeps glue squeeze-out from locking the jig. Bosses are 10 mm tall to give a pressing surface. Lift the jig off over the leads before connecting them, or solder after removal.
+- **Sensor pockets:** the bore is the piezo disc diameter + 1.2 mm, with three 2 mm ribs at 120° that stand 0.6 mm proud. This leaves 0.15 mm radial clearance on the disc. A 0.8 mm chamfer at the plate face keeps glue squeeze-out from locking the jig. Bosses are 10 mm tall to give a pressing surface. Lift the jig off over the leads before connecting them, or solder after removal.
 - **Ring:** 20 mm wide band, 6 mm thick, with 8 mm spokes and a 24 mm hub.
 - **Punch guides:** bore = the nose diameter of your automatic center punch (default 8 mm), with 12 mm tall bosses. Fitting points: the center plus one per spoke at 60 mm. Held-out points (square bosses) sit at 92 mm on three spokes.
 - **Lugs:** one per spoke, outside the ring, each with a puzzle socket. Every adapter plugs in here, so its position relative to the ring is fixed.
@@ -71,7 +71,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 1. Print a 200 mm test bar (`part = "test_bar"`), measure it and scale the model to correct shrinkage.
 2. Print the 5 ring segments and the hub with the flat face down. Print the adapters for your plate; they export already flipped so they print without supports.
 3. Assemble the ring on a flat surface, add the adapter and seat it on the sanded back face.
-4. Glue the discs through the pockets: put a small dot of glue on the plate in each pocket first, then drop the disc in and press it through the boss. Let the glue cure, then lift the jig off.
+4. Glue the piezo discs through the pockets: put a small dot of glue on the plate in each pocket first, then drop the disc in and press it through the boss. Let the glue cure, then lift the jig off.
 5. Leave the jig on (or re-seat it) for the punch calibration in section 8.
 
 ### 4.2 Mounting and enclosure
@@ -111,7 +111,7 @@ The jig has two parts: a **core ring**, which sets every sensor and punch positi
 
 Each sensor gets its own **cover pod**, and optional **cable clips** hold the long cable runs. Build, fitting and removal steps are in the [sensor cover README](../Sensor%20Cover/README.md).
 
-- **Pod:** a cap over the potted disc that touches neither the disc nor its leads, a channel for the slack loop, and a clamp that grips the cable 30 mm from the sensor with an optional cable tie. Turn each pod so its cable exit points at the box. The rim stands 1.5 mm off the steel, so water drains out and the edge can't rattle.
+- **Pod:** a cap over the potted piezo disc that touches neither the disc nor its leads, a channel for the slack loop, and a clamp that grips the cable 30 mm from the sensor with an optional cable tie. Turn each pod so its cable exit points at the box. The rim stands 1.5 mm off the steel, so water drains out and the edge can't rattle.
 - **Magnets:** two rubber-coated neodymium pot magnets per pod (Ø22 mm, M4 thread, 5 kg or more), bolted in with threadlocker or nyloc nuts. The steel cup protects the brittle magnet from shock, and the rubber face stops the pod creeping across the plate.
 - **Why separate pods:** a pod weighs about 55 g, so its two magnets hold against an estimated 180 g of acceleration straight off the plate and about 90 g sideways. A hit drives the plate backward into the pods; only the rebound and ringing pull them away. One cover spanning all five sensors would be heavier, more prone to rattling and too big for most print beds.
 - **Timing:** a pod touches the steel only through the rubber faces of its magnets, and rubber passes almost none of the stress wave. So the pods come off for calibration and go back on for shooting, with no effect on timing.

@@ -374,7 +374,8 @@ void setup() {
   s_radio->setCRC(true);
   s_radio->setDio1Action(onDio1);
   startRx();
-  Serial.printf("{\"type\":\"rx_boot\",\"net\":%u,\"freq_mhz\":%.1f,\"sf\":%u}\n", kNetId, kLoraFreqMHz, kLoraSF);
+  Serial.printf("{\"type\":\"rx_boot\",\"net\":%u,\"freq_mhz\":%.1f,\"sf\":%u,\"pwr_dbm\":%d}\n", kNetId,
+                kLoraFreqMHz, kLoraSF, kLoraPowerDbm);
   webui::begin(onWebClear, sendWebCommand);
   draw();
 }

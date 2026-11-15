@@ -170,9 +170,9 @@ Each sensor gets its own **cover pod**, and optional **cable clips** hold the lo
 
 **Summary:** the design range is **500 m**. With the default settings and antennas 1–2 m off the ground, the estimated link margin at 500 m over open ground is about **40 dB**, enough for a reliable link with room for brush and people in the path. On flat, open ground the estimated limit is **2–4 km**. These figures come from the link budget below, not from field tests; run a signal range test (section 9.6) before relying on them.
 
-- **Boards:** **Heltec WiFi LoRa 32 V3** (ESP32-S3 + SX1262 LoRa radio + small display, about $20) at both ends. The target board is also the timing and solving computer. US band is 915 MHz.
-- **Settings:** SF8, 125 kHz bandwidth, coding rate 4/5, +17 dBm by default (in `OpenGongProto.h`). SF7–9 and +14 to +20 dBm are the design range. Both boards must use the same settings, so reflash both after a change.
-- **Antennas:** replace the stock stubs with proper 915 MHz dipoles. Mount the target antenna 1–2 m up, behind cover and out of the line of fire (see *Antenna height and placement*).
+- **Boards:** **Heltec WiFi LoRa 32 V3** (ESP32-S3 + SX1262 LoRa radio + small display, about $20) at both ends. The target board is also the timing and solving computer. The band is 915 MHz in the US and 868 MHz in the EU, picked with `OG_BAND` in `platformio.ini` (section 9.5).
+- **Settings:** SF8, 125 kHz bandwidth, coding rate 4/5, +17 dBm in the US and +14 dBm in the EU (in `OpenGongProto.h`). SF7–9 and +14 to +20 dBm are the US design range. Both boards must use the same settings, so reflash both after a change.
+- **Antennas:** replace the stock stubs with proper dipoles for your band (915 or 868 MHz). Mount the target antenna 1–2 m up, behind cover and out of the line of fire (see *Antenna height and placement*).
 - **Packet:** a 20-byte shot packet: shot number, x and y (in 0.1 mm units), residual, sensors used, battery level and a checksum. The receiver acknowledges each shot with a 9-byte ACK, and the target resends up to 3 times.
 - **Receiver:** runs its own Wi-Fi network and serves a web app to any phone or laptop that joins it (no internet or cable needed). The app draws the plate to scale (round or rectangular, your size), overlays the hits as bullet-sized holes, offers a ½ MOA, 1 MOA or 0.1 mil grid for the set distance, and shows group centre, extreme spread and mean radius. Shots are stored in the browser, not on the receiver. USB serial JSON is still printed for a laptop. See the [firmware README](../firmware/README.md#web-app).
 
@@ -229,12 +229,12 @@ Keep at least **10 dB** of margin for fading and changes from day to day. Under 
 - **SF8 (default):** a good balance for 500 m to 1 km.
 - **SF7:** for short ranges with a strong signal (SNR above about +5 dB). It gives faster exchanges and less airtime.
 - **SF9:** gives about 2.5 dB more sensitivity than SF8, for longer or blocked paths. Raising the antenna height usually gains more and doesn't slow down shot reporting.
-- **Transmit power:** raising it from +17 to +20 dBm gains 3 dB, and lowering it to +14 dBm saves battery when there's plenty of margin.
+- **Transmit power:** set it with `-DOG_LORA_POWER_DBM=n` in `platformio.ini`. In the US, raising it from +17 to +20 dBm gains 3 dB, and lowering it to +14 dBm saves battery when there's plenty of margin. In the EU, +14 dBm is the maximum.
 
 ### 9.5 Regional rules
 
 - **US (902–928 MHz):** +17 dBm with ordinary dipoles is well under the 1 W limit, but the operating rules depend on how the device is certified. Check the rules that apply to your setup.
-- **EU (868 MHz):** set `kLoraFreqMHz` to 868. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. Lower `kLoraPowerDbm` to 14 or less to stay within it. At SF8, 1% (36 s of airtime per hour) allows about 300 acknowledged shots per hour, which is ample for normal shooting.
+- **EU (868 MHz):** set `-DOG_BAND=868` in `platformio.ini` and reflash both boards. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. The EU build uses 868.1 MHz, so the whole 125 kHz channel stays inside that band, and transmits at +14 dBm. A build that asks for more than +14 dBm won't compile. At SF8, 1% (36 s of airtime per hour) allows about 300 acknowledged shots per hour, which is ample for normal shooting. The firmware doesn't count airtime, so keeping under the duty cycle is up to you. The 3 dB less power costs about 3 dB of link margin in section 9.2.
 
 ### 9.6 Signal range test
 

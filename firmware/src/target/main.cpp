@@ -74,7 +74,8 @@ void setup() {
     Serial.printf("capture: %d channels, %lu Hz timer (%.1f ns/tick)\n", g_activeCh,
                   (unsigned long)captureResolutionHz(), 1e9 / captureResolutionHz());
   }
-  Serial.printf("{\"type\":\"boot\",\"boot\":%u,\"n_ch\":%d,\"net\":%u}\n", s_bootId, g_activeCh, og::kNetId);
+  Serial.printf("{\"type\":\"boot\",\"boot\":%u,\"n_ch\":%d,\"net\":%u,\"freq_mhz\":%.1f,\"pwr_dbm\":%d}\n", s_bootId,
+                g_activeCh, og::kNetId, og::kLoraFreqMHz, og::kLoraPowerDbm);
   Serial.println("type 'help' for commands");
   sendStatus();
   s_lastStatus = millis();

@@ -17,7 +17,7 @@ pio device monitor                # 115200 baud
 
 The project uses Arduino-ESP32 3.x (ESP-IDF 5) through the pioarduino platform, because the capture code needs the IDF 5 MCPWM capture driver. RadioLib and the ThingPulse SSD1306 library are fetched automatically.
 
-**Before powering either board, attach its antenna.** The default band is 915 MHz (US). For the EU, set `kLoraFreqMHz` to 868 in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h). If two OpenGong systems share a range, give each one its own `-DOG_NET_ID` in [platformio.ini](platformio.ini), and its own Wi-Fi name with `OG_WIFI_SSID` (the password is `OG_WIFI_PASS`, both in the receiver section of the same file).
+**Before powering either board, attach its antenna.** The default band is 915 MHz (US) at +17 dBm. For the EU, change `-DOG_BAND=915` to `-DOG_BAND=868` in [platformio.ini](platformio.ini). That sets 868.1 MHz and +14 dBm (the 25 mW ERP limit) together on both boards, and the build refuses a higher power. To change the power yourself, add `-DOG_LORA_POWER_DBM=n` next to it. Both boards print their frequency and power in the boot line on USB. If two OpenGong systems share a range, give each one its own `-DOG_NET_ID` in [platformio.ini](platformio.ini), and its own Wi-Fi name with `OG_WIFI_SSID` (the password is `OG_WIFI_PASS`, both in the receiver section of the same file).
 
 ## Layout
 
@@ -233,7 +233,7 @@ Flags:
 
 ## Radio link
 
-- **Settings:** SF8 / 125 kHz / CR 4/5 / +17 dBm / sync word 0x12, set in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h).
+- **Settings:** SF8 / 125 kHz / CR 4/5 / sync word 0x12, set in [OpenGongProto.h](lib/OpenGongProto/OpenGongProto.h). Frequency and power come from `OG_BAND` in [platformio.ini](platformio.ini): 915 MHz at +17 dBm (US) or 868.1 MHz at +14 dBm (EU).
 - **Shot packets:** 20 bytes, about 103 ms on air (ACK: 9 bytes, about 72 ms). The receiver ACKs every copy it gets. If no ACK arrives, the target resends up to 3 times with a random back-off. Each target boot picks a random `boot` ID, and the receiver de-duplicates on (`boot`, `n`).
 - **Status:** the target sends a status packet every 30 s.
 - **Command responses:** sent back in 200-byte chunks.

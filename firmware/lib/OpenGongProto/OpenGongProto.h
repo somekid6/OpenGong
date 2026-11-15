@@ -10,6 +10,22 @@
 #define OG_NET_ID 1
 #endif
 
+// Radio band (build flag -DOG_BAND=915 or -DOG_BAND=868 in platformio.ini).
+// It sets the frequency and the transmit power together, so an EU build stays
+// within the 868 MHz limits. Both boards must be built with the same band.
+#ifndef OG_BAND
+#define OG_BAND 915
+#endif
+#if OG_BAND != 915 && OG_BAND != 868
+#error "OG_BAND must be 915 (US) or 868 (EU)"
+#endif
+
+// Optional power override in dBm (-DOG_LORA_POWER_DBM=n). The EU build refuses
+// anything above +14 dBm.
+#if defined(OG_LORA_POWER_DBM) && OG_BAND == 868 && OG_LORA_POWER_DBM > 14
+#error "EU 868 MHz allows at most +14 dBm (25 mW ERP)"
+#endif
+
 namespace og {
 
 constexpr int kMaxChannels = 5;  // one per jig sensor; MCPWM group 0 takes 3, group 1 takes 2
@@ -17,12 +33,26 @@ constexpr int kMaxChannels = 5;  // one per jig sensor; MCPWM group 0 takes 3, g
 // ---------------------------------------------------------------------------
 // LoRa PHY settings. Both boards must match.
 // ---------------------------------------------------------------------------
-constexpr float    kLoraFreqMHz  = 915.0f;  // US ISM band. Use 868.0 in the EU.
+#if OG_BAND == 868
+// EU: 868.1 MHz keeps the whole 125 kHz channel inside the 868.0-868.6 MHz
+// sub-band (25 mW ERP, 1% duty cycle). +14 dBm into a plain dipole is about
+// 14 dBm ERP before cable loss.
+constexpr float    kLoraFreqMHz  = 868.1f;
+constexpr int8_t   kLoraDefaultPowerDbm = 14;
+#else
+// US: 902-928 MHz ISM band.
+constexpr float    kLoraFreqMHz  = 915.0f;
+constexpr int8_t   kLoraDefaultPowerDbm = 17;  // design range: +14 to +20 dBm
+#endif
+#ifdef OG_LORA_POWER_DBM
+constexpr int8_t   kLoraPowerDbm = OG_LORA_POWER_DBM;
+#else
+constexpr int8_t   kLoraPowerDbm = kLoraDefaultPowerDbm;
+#endif
 constexpr float    kLoraBwKHz    = 125.0f;
 constexpr uint8_t  kLoraSF       = 8;       // design range: SF 7-9
 constexpr uint8_t  kLoraCR       = 5;       // coding rate 4/5
 constexpr uint8_t  kLoraSyncWord = 0x12;    // private LoRa network
-constexpr int8_t   kLoraPowerDbm = 17;      // design range: +14 to +20 dBm
 constexpr uint16_t kLoraPreamble = 8;
 constexpr float    kLoraTcxoV    = 1.6f;    // Heltec V3 radio TCXO supply
 

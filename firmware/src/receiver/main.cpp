@@ -132,7 +132,9 @@ void draw() {
   if (!s_last.have) {
     s_oled.setFont(ArialMT_Plain_10);
     s_oled.drawString(0, 0, "OpenGong RX");
-    s_oled.drawString(0, 14, s_haveStatus ? "target online" : "no target yet");
+    s_oled.drawString(0, 14, !s_haveStatus                         ? "no target yet"
+                             : (s_status.mode & STATUS_DEFAULTS) ? "target NOT CAL"
+                                                                 : "target online");
     s_oled.drawString(0, 32, "WiFi:");
     s_oled.drawString(0, 42, webui::ssid());
     s_oled.drawString(0, 53, webui::ipAddress());
@@ -157,7 +159,8 @@ void draw() {
   groupStats(mx, my, es);
   snprintf(line, sizeof line, "ES %.0f n%d", es, s_nhits);
   s_oled.drawString(0, 40, line);
-  snprintf(line, sizeof line, "%.0fdBm", s_last.rssi);
+  const bool noCal = s_haveStatus && (s_status.mode & STATUS_DEFAULTS);
+  snprintf(line, sizeof line, "%.0fdBm%s", s_last.rssi, noCal ? " NOCAL" : "");
   s_oled.drawString(0, 52, line);
   s_oled.display();
 }
@@ -228,8 +231,9 @@ void handleStatus(const StatusPacket& st, float rssi) {
   webui::recordStatus(st, rssi);
   Serial.printf(
       "{\"type\":\"status\",\"boot\":%u,\"shots\":%u,\"rejects\":%u,\"batt_mv\":%u,\"uptime_min\":%u,"
-      "\"n_ch\":%u,\"mode\":\"%s\",\"rssi\":%.0f}\n",
-      st.boot_id, st.shots, st.rejects, st.batt_mv, st.uptime_min, st.n_ch, st.mode ? "cal" : "normal", rssi);
+      "\"n_ch\":%u,\"mode\":\"%s\",\"defaults\":%s,\"rssi\":%.0f}\n",
+      st.boot_id, st.shots, st.rejects, st.batt_mv, st.uptime_min, st.n_ch, (st.mode & STATUS_CAL) ? "cal" : "normal",
+      (st.mode & STATUS_DEFAULTS) ? "true" : "false", rssi);
   s_dirty = true;
 }
 

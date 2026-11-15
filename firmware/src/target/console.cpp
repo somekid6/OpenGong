@@ -18,6 +18,7 @@ const char kHelp[] =
     "Commands (mm, front view, origin = ring centre; channels 1-5):\n"
     "<pt> = '<x> <y>' or a punch guide P0-P5, H1, H2, H4\n"
     "  show                     print configuration\n"
+    "  export                   print settings as commands (a backup)\n"
     "  set s <ch> <x> <y>       sensor position\n"
     "  set d <ch> <ns>          channel delay\n"
     "  set v <m/s>              wave speed\n"
@@ -96,6 +97,7 @@ void show(Print& o) {
   o.printf("aim %.2f %.2f  flip %u %u\n", c.aim_x, c.aim_y, c.flip_x, c.flip_y);
   o.printf("win %u us  hold %u ms  rlim %u ns\n", c.window_us, c.holdoff_ms, c.resid_limit_ns);
   o.printf("timer %lu Hz\n", (unsigned long)captureResolutionHz());
+  if (!configUsingSaved()) o.println("WARNING: built-in defaults, nothing saved. Calibrate, then 'save'.");
 }
 
 void stats(Print& o) {
@@ -213,7 +215,7 @@ void cmdCal(char* save, Print& out) {
 void consoleExec(char* line, Print& out) {
   char* save = nullptr;
   const char* cmd = strtok_r(line, " \t\r\n", &save);
-  if (!cmd) return;
+  if (!cmd || cmd[0] == '#') return;  // blank line, or a comment from pasted 'export' output
 
   if (!strcmp(cmd, "help") || !strcmp(cmd, "?")) {
     out.print(kHelp);
@@ -223,10 +225,27 @@ void consoleExec(char* line, Print& out) {
     cmdSet(save, out);
   } else if (!strcmp(cmd, "save")) {
     out.println(configSave(g_cfg) ? "saved" : "error: save failed");
+  } else if (!strcmp(cmd, "export")) {
+    configExport(g_cfg, out);
   } else if (!strcmp(cmd, "load")) {
-    out.println(configLoad(g_cfg) ? "loaded" : "nothing stored, defaults loaded");
+    // Only replaces the live settings when flash holds usable ones, so an
+    // unsaved calibration isn't thrown away for the defaults.
+    Config c;
+    char why[64];
+    const ConfigSource src = configLoad(c, why, sizeof why);
+    if (src == ConfigSource::Defaults) {
+      out.println("error: nothing saved, live settings unchanged");
+    } else if (src == ConfigSource::Rejected) {
+      out.printf("error: saved settings unusable (%s), live settings unchanged\n", why);
+    } else {
+      g_cfg = c;
+      g_cfgSource = src;
+      out.println("loaded");
+      if (why[0]) out.printf("note: %s\n", why);
+    }
   } else if (!strcmp(cmd, "defaults")) {
     configDefaults(g_cfg);
+    g_cfgSource = ConfigSource::Defaults;
     out.println("defaults loaded (not saved)");
   } else if (!strcmp(cmd, "stats")) {
     stats(out);

@@ -64,6 +64,8 @@ void draw() {
   snprintf(line, sizeof line, "%.2fV", s_battMv / 1000.0f);
   s_oled.setTextAlignment(TEXT_ALIGN_RIGHT);
   s_oled.drawString(128, 44, line);
+  s_oled.setTextAlignment(TEXT_ALIGN_LEFT);
+  if (!configUsingSaved()) s_oled.drawString(0, 54, "NOT CALIBRATED - save");
   s_oled.display();
 }
 

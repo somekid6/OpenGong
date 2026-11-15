@@ -47,7 +47,7 @@ void sendStatus() {
   st.batt_mv = uiBatteryMv();
   st.uptime_min = static_cast<uint16_t>(millis() / 60000);
   st.n_ch = static_cast<uint8_t>(g_activeCh);
-  st.mode = processorCalActive() ? 1 : 0;
+  st.mode = (processorCalActive() ? og::STATUS_CAL : 0) | (configUsingSaved() ? 0 : og::STATUS_DEFAULTS);
   og::seal(st);
   linkSendStatus(st);
 }
@@ -60,7 +60,24 @@ void setup() {
   Serial.println("\nOpenGong target");
 
   s_bootId = static_cast<uint16_t>(esp_random());
-  if (!configLoad(g_cfg)) Serial.println("config: none stored, using defaults (see 'show')");
+  char why[64];
+  g_cfgSource = configLoad(g_cfg, why, sizeof why);
+  switch (g_cfgSource) {
+    case ConfigSource::Saved:
+      Serial.println("config: loaded from flash");
+      break;
+    case ConfigSource::Migrated:
+      Serial.println("config: converted settings from older firmware; calibration kept");
+      break;
+    case ConfigSource::Defaults:
+      Serial.println("WARNING: config: nothing saved, using built-in defaults. Calibrate, then 'save'.");
+      break;
+    case ConfigSource::Rejected:
+      Serial.println("WARNING: config: saved settings could not be used, running on built-in defaults.");
+      Serial.println("         Calibrate again, or paste a backup from 'export', then 'save'.");
+      break;
+  }
+  if (why[0]) Serial.printf("config: %s\n", why);
   g_activeCh = g_cfg.n_ch;
 
   uiBegin();
@@ -98,7 +115,11 @@ void loop() {
     linkSendResponse(seq, s_resp.data(), s_resp.size());
   }
 
-  if (millis() - s_lastStatus > kStatusPeriodMs) {
+  // Tell the receiver straight away when settings are saved or reset.
+  static bool s_wasSaved = configUsingSaved();
+  const bool saved = configUsingSaved();
+  if (saved != s_wasSaved || millis() - s_lastStatus > kStatusPeriodMs) {
+    s_wasSaved = saved;
     sendStatus();
     s_lastStatus = millis();
   }

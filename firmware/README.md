@@ -94,6 +94,12 @@ While `check` is on, shots are solved for the same face as the last `cal start` 
 
 Recalibrate for each plate. Calibration and settings are stored on the target board, one set per board.
 
+Saved settings survive firmware updates. Each setting is stored separately, so a newer firmware keeps every value it still uses, and a setting it adds starts at its default. The first boot after updating from older firmware converts the old saved settings and prints `config: converted settings from older firmware; calibration kept`.
+
+If the target ever runs without saved settings, it says so instead of quietly using the defaults. That happens on a new board, after `defaults`, or if the saved values can't be used. The boot message and `show` print a warning, the target's OLED shows `NOT CALIBRATED - save`, the receiver's OLED shows `NOCAL`, and the web app flags the target as not calibrated. The warning clears when you `save`.
+
+Before you update the firmware, run `export` and keep its output. It prints every setting as a `set` command. If you ever need the values back, paste those lines into the console, then `save`.
+
 - `cal fit fixv` fits only the delays and keeps the current wave speed.
 - Channel 1's delay is the zero reference, so other channels' delays can be negative.
 - A fitted speed far outside about 2500–7000 m/s means the sensor coordinates or tap positions are wrong.
@@ -116,7 +122,8 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `set aim <x> <y>` / `set flip <fx> <fy>` | Reported origin / axis mirroring |
 | `set n <3-5>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
 | `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window / hold-off / residual flag limit |
-| `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved |
+| `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved. `load` goes back to the saved settings; if nothing is saved, it leaves the live settings alone |
+| `export` | Print every setting as a `set` command, as a backup you can paste back |
 | `sim <pt> [noise_ns]` | Inject a synthetic hit (`<pt>` = `<x> <y>` or a guide name such as `P2`) |
 | `check <pt>` / `check off` | Report each shot's error from a known point |
 | `cal ...` | See [Calibration](#calibration) |

@@ -107,9 +107,10 @@ void handleShots() {
   } else {
     snprintf(s_buf, sizeof s_buf,
              "{\"seen\":true,\"age_s\":%lu,\"boot\":%u,\"batt_mv\":%u,\"rssi\":%.0f,\"shots\":%u,\"rejects\":%u,"
-             "\"mode\":\"%s\",\"n_ch\":%u,\"have_status\":%s}",
+             "\"mode\":\"%s\",\"defaults\":%s,\"n_ch\":%u,\"have_status\":%s}",
              (unsigned long)((now - s_tgt.heardAt) / 1000), s_tgt.boot, s_tgt.batt_mv, s_tgt.rssi, s_tgt.shots,
-             s_tgt.rejects, s_tgt.mode ? "cal" : "normal", s_tgt.n_ch, s_tgt.haveStatus ? "true" : "false");
+             s_tgt.rejects, (s_tgt.mode & og::STATUS_CAL) ? "cal" : "normal",
+             (s_tgt.mode & og::STATUS_DEFAULTS) ? "true" : "false", s_tgt.n_ch, s_tgt.haveStatus ? "true" : "false");
     s_http.sendContent(s_buf);
   }
 

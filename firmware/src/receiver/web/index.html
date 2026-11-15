@@ -563,7 +563,8 @@ function updatePills() {
   pt.className = 'pill ' + (stale ? 'bad' : 'ok');
   const batt = target.batt_mv > 2500 ? ` · ${(target.batt_mv / 1000).toFixed(2)} V` : '';
   pt.innerHTML = `target: <b>${stale ? 'silent ' + fmtAge(target.age_s) : 'online'}</b> · ${target.rssi} dBm${batt}` +
-    (target.mode === 'cal' ? ' · <b>calibrating</b>' : '');
+    (target.mode === 'cal' ? ' · <b>calibrating</b>' : '') +
+    (target.defaults ? ' · <b class="warnpill">not calibrated: nothing saved on the target</b>' : '');
 }
 
 let pollTimer = 0;
@@ -707,6 +708,16 @@ function expectOk(t) {
   const m = String(t).match(/^error: (.*)$/m);
   if (m) throw new Error('Target: ' + m[1]);
   return t;
+}
+
+// Reverts the target to its saved values. 'load' leaves the live values alone
+// when nothing is saved, so an explicit revert falls back to the defaults.
+// Returns 'saved' or 'defaults'.
+async function restoreSaved() {
+  const t = await targetCmd('load');
+  if (/nothing saved/.test(t)) { expectOk(await targetCmd('defaults')); return 'defaults'; }
+  expectOk(t);
+  return 'saved';
 }
 
 // ---- Parsing the target's console output (formats from console.cpp / processor.cpp)
@@ -905,7 +916,7 @@ const ACTS = {
   discard: () => {
     if (!confirm('Discard the new calibration and go back to the values saved on the target?')) return;
     run(async () => {
-      expectOk(await targetCmd('load'));
+      await restoreSaved();
       tDirty = false; W.applied = false; W.discarded = true;
       await readConfig();
       W.step = 'done';
@@ -922,7 +933,7 @@ const ACTS = {
       try {
         await targetCmd('check off');
         await targetCmd('cal stop');
-        if (restore) { expectOk(await targetCmd('load')); tDirty = false; await readConfig(); }
+        if (restore) { await restoreSaved(); tDirty = false; await readConfig(); }
       } finally { W.step = 'idle'; W.tgtGuide = null; }
     });
   },
@@ -937,9 +948,9 @@ const ACTS = {
   manLoad: () => {
     if (!confirm('Discard unsaved changes on the target and reload its saved values? If nothing was ever saved, it loads the defaults.')) return;
     run(async () => {
-      const t = expectOk(await targetCmd('load'));
+      const from = await restoreSaved();
       tDirty = false; await readConfig();
-      manMsg = { kind: 'ok', text: /nothing stored/.test(t) ? 'Nothing was saved on the target, so it loaded the defaults.' : 'Reloaded the saved values.' };
+      manMsg = { kind: 'ok', text: from === 'defaults' ? 'Nothing was saved on the target, so it loaded the defaults.' : 'Reloaded the saved values.' };
     }, 'man');
   },
 };

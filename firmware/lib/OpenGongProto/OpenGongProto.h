@@ -102,6 +102,12 @@ enum ShotFlags : uint8_t {
   SHOT_SIM          = 0x40,  // synthetic shot from the "sim" command
 };
 
+// StatusPacket.mode bits.
+enum StatusMode : uint8_t {
+  STATUS_CAL      = 0x01,  // calibration in progress
+  STATUS_DEFAULTS = 0x02,  // running on built-in defaults: nothing saved (not calibrated)
+};
+
 struct __attribute__((packed)) PacketHeader {
   uint8_t magic;
   uint8_t net;
@@ -137,7 +143,7 @@ struct __attribute__((packed)) StatusPacket {
   uint16_t batt_mv;
   uint16_t uptime_min;
   uint8_t  n_ch;
-  uint8_t  mode;  // 0 = normal, 1 = calibration
+  uint8_t  mode;  // StatusMode bits
   uint16_t crc;
 };
 

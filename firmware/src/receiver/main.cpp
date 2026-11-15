@@ -33,6 +33,19 @@ constexpr float kPlotRingMm = 120.0f;  // sensor ring radius drawn on the plot
 SPIClass s_spi(HSPI);
 SX1262* s_radio = nullptr;
 volatile bool s_irq = false;
+
+// The radio is serviced by its own task, so a shot is ACKed within a few ms
+// even while loop() is busy serving the web app or redrawing the OLED. The
+// target only waits about 220 ms for the ACK. The task hands each valid packet
+// to loop() through s_rxq; s_radioMux guards every SX1262 access.
+struct RxMsg {
+  uint8_t len;
+  float   rssi, snr;
+  uint8_t buf[kMaxPacket];
+};
+SemaphoreHandle_t s_radioMux = nullptr;
+QueueHandle_t s_rxq = nullptr;
+TaskHandle_t s_radioTask = nullptr;
 SSD1306Wire s_oled(0x3c, kOledSda, kOledScl, GEOMETRY_128_64);
 
 struct Hit {
@@ -56,7 +69,8 @@ int s_seenPos = 0;
 StatusPacket s_status;
 bool s_haveStatus = false;
 uint32_t s_statusAt = 0;
-uint32_t s_rxCount = 0, s_dupCount = 0, s_ackCount = 0;
+uint32_t s_rxCount = 0, s_dupCount = 0;
+volatile uint32_t s_ackCount = 0;  // written by the radio task only
 
 uint8_t s_cmdSeq = 0;
 char s_line[og::kMaxText + 8];
@@ -64,16 +78,28 @@ size_t s_len = 0;
 bool s_dirty = true;
 uint32_t s_lastDraw = 0;
 
-void IRAM_ATTR onDio1() { s_irq = true; }
+void IRAM_ATTR onDio1() {
+  s_irq = true;
+  BaseType_t woken = pdFALSE;
+  if (s_radioTask) vTaskNotifyGiveFromISR(s_radioTask, &woken);
+  if (woken) portYIELD_FROM_ISR();
+}
 
 void startRx() {
   s_irq = false;
   s_radio->startReceive();
 }
 
-void tx(const uint8_t* buf, size_t len) {
+// Caller holds s_radioMux.
+void txLocked(const uint8_t* buf, size_t len) {
   s_radio->transmit(const_cast<uint8_t*>(buf), len);
-  startRx();
+  startRx();  // also clears the TX-done interrupt flag
+}
+
+void tx(const uint8_t* buf, size_t len) {
+  xSemaphoreTake(s_radioMux, portMAX_DELAY);
+  txLocked(buf, len);
+  xSemaphoreGive(s_radioMux);
 }
 
 // ---------------------------------------------------------------------------
@@ -189,16 +215,8 @@ void printFlags(uint8_t f) {
   Serial.print(']');
 }
 
+// The radio task has already ACKed this copy (see radioTask()).
 void handleShot(const ShotPacket& p, float rssi, float snr) {
-  // ACK first, every time (the previous ACK may have been lost).
-  AckPacket ack = {};
-  initHeader(ack.hdr, PKT_ACK);
-  ack.boot_id = p.boot_id;
-  ack.shot = p.shot;
-  seal(ack);
-  tx(reinterpret_cast<const uint8_t*>(&ack), sizeof ack);
-  ++s_ackCount;
-
   if (seenBefore(p.boot_id, p.shot)) {
     ++s_dupCount;
     return;
@@ -247,36 +265,69 @@ void handleResp(const uint8_t* buf, size_t len) {
   if ((part & kPartLast) && len > kTextOverhead && text[strlen(text) - 1] != '\n') Serial.println();
 }
 
-void pollRadio() {
-  if (!s_irq) return;
-  s_irq = false;
-  uint8_t buf[kMaxPacket + 8];
-  const size_t len = s_radio->getPacketLength();
-  int st = RADIOLIB_ERR_UNKNOWN;
-  if (len > 0 && len <= sizeof buf) st = s_radio->readData(buf, len);
-  const float rssi = s_radio->getRSSI(), snr = s_radio->getSNR();
-  startRx();
-  if (st != RADIOLIB_ERR_NONE || !packetValid(buf, len)) return;
-  ++s_rxCount;
-
-  switch (packetType(buf)) {
-    case PKT_SHOT: {
+// Woken by DIO1. Reads the packet, ACKs a shot at once (every copy: the
+// previous ACK may have been lost), then queues the packet for loop().
+void radioTask(void*) {
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(20));  // the timeout is only a safety net
+    if (!s_irq) continue;
+    xSemaphoreTake(s_radioMux, portMAX_DELAY);
+    if (!s_irq) {  // a transmit from loop() got here first and cleared it
+      xSemaphoreGive(s_radioMux);
+      continue;
+    }
+    s_irq = false;
+    RxMsg m;
+    const size_t len = s_radio->getPacketLength();
+    int st = RADIOLIB_ERR_UNKNOWN;
+    if (len > 0 && len <= sizeof m.buf) st = s_radio->readData(m.buf, len);
+    m.rssi = s_radio->getRSSI();
+    m.snr = s_radio->getSNR();
+    startRx();
+    const bool ok = st == RADIOLIB_ERR_NONE && packetValid(m.buf, len);
+    m.len = static_cast<uint8_t>(len);
+    // Only ACK a shot loop() will get. If the queue is full, stay silent and
+    // let the target resend, rather than ACK a shot that is then dropped.
+    const bool room = uxQueueSpacesAvailable(s_rxq) > 0;
+    if (ok && room && packetType(m.buf) == PKT_SHOT) {
       ShotPacket p;
-      memcpy(&p, buf, sizeof p);
-      handleShot(p, rssi, snr);
-      break;
+      memcpy(&p, m.buf, sizeof p);
+      AckPacket ack = {};
+      initHeader(ack.hdr, PKT_ACK);
+      ack.boot_id = p.boot_id;
+      ack.shot = p.shot;
+      seal(ack);
+      txLocked(reinterpret_cast<const uint8_t*>(&ack), sizeof ack);
+      s_ackCount = s_ackCount + 1;
     }
-    case PKT_STATUS: {
-      StatusPacket p;
-      memcpy(&p, buf, sizeof p);
-      handleStatus(p, rssi);
-      break;
+    xSemaphoreGive(s_radioMux);
+    if (ok && room) xQueueSend(s_rxq, &m, 0);
+  }
+}
+
+void pollRadio() {
+  RxMsg m;
+  while (xQueueReceive(s_rxq, &m, 0) == pdTRUE) {
+    ++s_rxCount;
+    switch (packetType(m.buf)) {
+      case PKT_SHOT: {
+        ShotPacket p;
+        memcpy(&p, m.buf, sizeof p);
+        handleShot(p, m.rssi, m.snr);
+        break;
+      }
+      case PKT_STATUS: {
+        StatusPacket p;
+        memcpy(&p, m.buf, sizeof p);
+        handleStatus(p, m.rssi);
+        break;
+      }
+      case PKT_RESP:
+        handleResp(m.buf, m.len);
+        break;
+      default:
+        break;
     }
-    case PKT_RESP:
-      handleResp(buf, len);
-      break;
-    default:
-      break;
   }
 }
 
@@ -370,6 +421,8 @@ void setup() {
   s_oled.init();
   s_oled.flipScreenVertically();
 
+  s_radioMux = xSemaphoreCreateMutex();
+  s_rxq = xQueueCreate(16, sizeof(RxMsg));
   s_spi.begin(kLoraSck, kLoraMiso, kLoraMosi, kLoraNss);
   s_radio = new SX1262(new Module(kLoraNss, kLoraDio1, kLoraRst, kLoraBusy, s_spi));
   const int st = s_radio->begin(kLoraFreqMHz, kLoraBwKHz, kLoraSF, kLoraCR, kLoraSyncWord, kLoraPowerDbm,
@@ -384,6 +437,9 @@ void setup() {
   s_radio->setCRC(true);
   s_radio->setDio1Action(onDio1);
   startRx();
+  // Same core as loop() (and away from Wi-Fi on core 0), at a higher priority,
+  // so it pre-empts loop() as soon as a packet lands.
+  xTaskCreatePinnedToCore(radioTask, "radio", 4096, nullptr, 5, &s_radioTask, ARDUINO_RUNNING_CORE);
   Serial.printf("{\"type\":\"rx_boot\",\"net\":%u,\"freq_mhz\":%.1f,\"sf\":%u,\"pwr_dbm\":%d}\n", kNetId,
                 kLoraFreqMHz, kLoraSF, kLoraPowerDbm);
   webui::begin(onWebClear, sendWebCommand);

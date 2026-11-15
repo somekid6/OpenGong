@@ -81,6 +81,21 @@ bool isAckFor(const uint8_t* buf, size_t len, uint16_t bootId, uint16_t shot) {
   return a.boot_id == bootId && a.shot == shot;
 }
 
+// Listens for up to ms for the ACK of m, handling anything else that arrives.
+bool waitForAck(const OutMsg& m, uint32_t ms) {
+  const uint32_t start = millis();
+  while (millis() - start < ms) {
+    if (s_irq) {
+      uint8_t b[kMaxPacket + 8];
+      const size_t n = readPacket(b, sizeof b);
+      if (n && isAckFor(b, n, m.bootId, m.shot)) return true;
+      if (n) handleIncoming(b, n);
+    }
+    vTaskDelay(1);
+  }
+  return false;
+}
+
 void sendShot(const OutMsg& m) {
   const uint32_t ackWaitMs = s_radio->getTimeOnAir(sizeof(AckPacket)) / 1000 + 150;
   portENTER_CRITICAL(&s_statsMux);
@@ -88,22 +103,14 @@ void sendShot(const OutMsg& m) {
   portEXIT_CRITICAL(&s_statsMux);
 
   for (int attempt = 0; attempt <= kRetries; ++attempt) {
-    if (attempt) vTaskDelay(pdMS_TO_TICKS(random(30, 150)));  // de-synchronise retries
     tx(m.buf, m.len);
-    const uint32_t start = millis();
-    while (millis() - start < ackWaitMs) {
-      if (s_irq) {
-        uint8_t b[kMaxPacket + 8];
-        const size_t n = readPacket(b, sizeof b);
-        if (n && isAckFor(b, n, m.bootId, m.shot)) {
-          portENTER_CRITICAL(&s_statsMux);
-          s_stats.shotsAcked++;
-          portEXIT_CRITICAL(&s_statsMux);
-          return;
-        }
-        if (n) handleIncoming(b, n);
-      }
-      vTaskDelay(1);
+    // The random back-off (to de-synchronise retries) is spent listening, so a
+    // late ACK still counts instead of being lost when the radio goes back to TX.
+    if (waitForAck(m, ackWaitMs + random(30, 150))) {
+      portENTER_CRITICAL(&s_statsMux);
+      s_stats.shotsAcked++;
+      portEXIT_CRITICAL(&s_statsMux);
+      return;
     }
   }
   portENTER_CRITICAL(&s_statsMux);

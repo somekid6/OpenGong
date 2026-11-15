@@ -672,7 +672,11 @@ let busyText = null, manMsg = null;
 
 // ---- Command transport --------------------------------------------------
 // One command at a time. LoRa commands aren't acknowledged, so a missing reply
-// is retried once unless the command isn't safe to repeat (cal undo).
+// is retried. A retry resends the same command (same id and LoRa seq), and the
+// target answers a repeat with its saved reply instead of running it again, so
+// every command is safe to retry. retry: false is only for the range test,
+// which counts missing replies.
+const CMD_RETRIES = 2;
 let cmdChain = Promise.resolve();
 function targetCmd(text, opt = {}) {
   const go = () => sendCmd(text, opt.retry !== false);
@@ -681,17 +685,23 @@ function targetCmd(text, opt = {}) {
   return p;
 }
 async function sendCmd(text, retry) {
+  let id = null;
   for (let attempt = 0; ; attempt++) {
     setBusy(text);
-    let reply;
-    try { reply = await cmdOnce(text); } finally { setBusy(null); }
-    if (reply != null) return reply;
-    if (!retry || attempt >= 1) throw new Error(`No reply from the target to "${text}". Check that it's on and in range, then try again.`);
+    let res;
+    try { res = await cmdOnce(text, id); } finally { setBusy(null); }
+    if (res.reply != null) return res.reply;
+    id = res.id;  // retry this command, not a new one
+    if (!retry || id == null || attempt >= CMD_RETRIES)
+      throw new Error(`No reply from the target to "${text}". Check that it's on and in range, then try again.`);
   }
 }
-async function cmdOnce(text) {  // reply text, or null if none arrived in time
-  if (DEMO) { await sleep(300 + Math.random() * 300); return demoTarget(text); }
-  const r = await fetch('/api/cmd', { method: 'POST', body: new URLSearchParams({ c: text }), cache: 'no-store' });
+// Sends text, or resends command retryId. Returns { id, reply }; reply is null
+// if none arrived in time.
+async function cmdOnce(text, retryId) {
+  if (DEMO) { await sleep(300 + Math.random() * 300); return { id: null, reply: demoTarget(text) }; }
+  const body = retryId != null ? { retry: retryId } : { c: text };
+  const r = await fetch('/api/cmd', { method: 'POST', body: new URLSearchParams(body), cache: 'no-store' });
   const d = await r.json().catch(() => ({}));
   if (!r.ok || !d.ok) throw new Error('Receiver: ' + (d.error || 'HTTP ' + r.status));
   const t0 = Date.now();
@@ -699,10 +709,10 @@ async function cmdOnce(text) {  // reply text, or null if none arrived in time
     await sleep(250);
     let g;
     try { g = await api('/api/cmd?id=' + d.id); } catch (e) { continue; }
-    if (g.state === 'done') return g.text + (g.gap ? '\n[part of the reply was lost]' : '');
-    if (g.state === 'unknown') return null;
+    if (g.state === 'done') return { id: d.id, reply: g.text + (g.gap ? '\n[part of the reply was lost]' : '') };
+    if (g.state === 'unknown') return { id: null, reply: null };  // receiver forgot it: don't resend
   }
-  return null;
+  return { id: d.id, reply: null };
 }
 function expectOk(t) {
   const m = String(t).match(/^error: (.*)$/m);
@@ -888,7 +898,7 @@ const ACTS = {
   }),
   undo: () => run(async () => {
     let t;
-    try { t = await targetCmd('cal undo', { retry: false }); }
+    try { t = await targetCmd('cal undo'); }
     catch (e) { await reconcile(); throw new Error('No reply to undo, so the tap counts were re-read from the target. Check the count before undoing again.'); }
     expectOk(t);
     const g = W.stack.pop();
@@ -1362,7 +1372,7 @@ async function rangeRun() {
     for (; RT.i < RT.n && !RT.stop; RT.i++) {
       renderRange();
       const have = RT.got.length;
-      try { expectOk(await targetCmd('sim P0', { retry: false })); }  // a repeat would inject a second shot
+      try { expectOk(await targetCmd('sim P0', { retry: false })); }  // the test counts missing replies, so no retries
       catch (e) { if (!/^No reply/.test(e.message)) throw e; RT.noReply++; }
       await rtWaitShot(have + 1, RT_SHOT_WAIT_MS);
       if (RT.i < RT.n - 1 && !RT.stop) await sleep(RT_GAP_MS);

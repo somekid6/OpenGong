@@ -46,7 +46,7 @@ uint32_t s_seq = 0;
 uint32_t s_clears = 0;
 uint32_t s_rxBoot = 1;
 void (*s_onClear)() = nullptr;
-uint8_t (*s_sendCmd)(const char*) = nullptr;
+uint8_t (*s_sendCmd)(const char*, int) = nullptr;
 
 // Console commands sent from browsers and the target's replies. A reply comes
 // back as one or more PKT_RESP chunks carrying the command's seq.
@@ -61,7 +61,8 @@ struct Cmd {
   bool done = false;
   bool gap = false;  // a chunk went missing
   uint16_t len = 0;
-  char text[kReplyCap];
+  char cmd[og::kMaxText + 1];  // the command line, kept so a retry can resend it
+  char text[kReplyCap];        // the reply
 };
 Cmd s_cmds[kCmdSlots];
 int s_cmdNext = 0;
@@ -144,7 +145,39 @@ void sendJson(int code, const char* body) {
   s_http.send(code, "application/json", body);
 }
 
+void resetReply(Cmd& m) {
+  m.done = m.gap = false;
+  m.len = 0;
+  m.nextPart = 0;
+  m.text[0] = '\0';
+}
+
+// POST /api/cmd with retry=<id>: resend that command with its original seq.
+// The target recognises the repeat and resends its earlier reply instead of
+// running the command a second time.
+void handleCmdRetry() {
+  const uint32_t id = strtoul(s_http.arg("retry").c_str(), nullptr, 10);
+  Cmd* m = nullptr;
+  for (Cmd& c : s_cmds)
+    if (id && c.id == id) m = &c;
+  if (!m || !s_sendCmd) {
+    sendJson(400, "{\"ok\":false,\"error\":\"unknown command id\"}");
+    return;
+  }
+  if (!m->done) {  // a finished reply is already there to read
+    resetReply(*m);
+    s_sendCmd(m->cmd, m->seq);
+    m->sentAt = millis();
+  }
+  snprintf(s_buf, sizeof s_buf, "{\"ok\":true,\"id\":%lu}", (unsigned long)m->id);
+  sendJson(200, s_buf);
+}
+
 void handleCmdPost() {
+  if (s_http.hasArg("retry")) {
+    handleCmdRetry();
+    return;
+  }
   const String c = s_http.arg("c");
   const char* why = nullptr;
   if (!s_sendCmd) why = "relay unavailable";
@@ -160,11 +193,9 @@ void handleCmdPost() {
   Cmd& m = s_cmds[s_cmdNext];
   s_cmdNext = (s_cmdNext + 1) % kCmdSlots;
   m.id = ++s_cmdId;
-  m.done = m.gap = false;
-  m.len = 0;
-  m.nextPart = 0;
-  m.text[0] = '\0';
-  m.seq = s_sendCmd(c.c_str());  // transmits now; the reply arrives through recordResponse()
+  resetReply(m);
+  strlcpy(m.cmd, c.c_str(), sizeof m.cmd);
+  m.seq = s_sendCmd(m.cmd, -1);  // transmits now; the reply arrives through recordResponse()
   m.sentAt = millis();
   snprintf(s_buf, sizeof s_buf, "{\"ok\":true,\"id\":%lu}", (unsigned long)m.id);
   sendJson(200, s_buf);
@@ -237,7 +268,7 @@ void handleNotFound() {
 
 }  // namespace
 
-void begin(void (*onClear)(), uint8_t (*sendCmd)(const char* text)) {
+void begin(void (*onClear)(), uint8_t (*sendCmd)(const char* text, int seq)) {
   s_onClear = onClear;
   s_sendCmd = sendCmd;
   s_rxBoot = (esp_random() & 0x00ffffffu) | 1u;

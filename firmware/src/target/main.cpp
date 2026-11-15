@@ -4,6 +4,7 @@
 //   -> windowing + LM solver (processor.cpp, loop task)
 //   -> USB serial JSON + LoRa to the receiver (link.cpp, core 0)
 #include <Arduino.h>
+#include <string.h>
 
 #include "OpenGongProto.h"
 #include "board.h"
@@ -36,7 +37,24 @@ class BufferPrint : public Print {
   char buf_[1600];
   size_t len_ = 0;
 };
-BufferPrint s_resp;
+BufferPrint s_resp;  // also kept as the reply to resend for a repeated command
+
+// The last command received over LoRa. Commands aren't acknowledged, so when a
+// reply is lost the receiver resends the command with the same seq. A repeat
+// gets the saved reply again instead of being run twice (a second "cal at"
+// would add an extra tap, a second "cal undo" would drop one too many).
+constexpr uint32_t kRepeatWindowMs = 60000;  // well past the web app's retries
+struct {
+  bool     have = false;
+  uint8_t  seq = 0;
+  uint32_t at = 0;
+  char     text[og::kMaxText + 1] = {};
+} s_lastCmd;
+
+bool isRepeat(uint8_t seq, const char* text) {
+  return s_lastCmd.have && seq == s_lastCmd.seq && !strcmp(text, s_lastCmd.text) &&
+         millis() - s_lastCmd.at < kRepeatWindowMs;
+}
 
 void sendStatus() {
   og::StatusPacket st = {};
@@ -107,7 +125,16 @@ void loop() {
   char cmd[og::kMaxText + 1];
   uint8_t seq;
   while (linkNextCommand(cmd, sizeof cmd, seq)) {
+    if (isRepeat(seq, cmd)) {
+      Serial.printf("> [lora] %s (repeat, resending the earlier reply)\n", cmd);
+      linkSendResponse(seq, s_resp.data(), s_resp.size());
+      continue;
+    }
     Serial.printf("> [lora] %s\n", cmd);
+    s_lastCmd.have = true;
+    s_lastCmd.seq = seq;
+    s_lastCmd.at = millis();
+    strlcpy(s_lastCmd.text, cmd, sizeof s_lastCmd.text);  // consoleExec tokenises cmd in place
     s_resp.clear();
     consoleExec(cmd, s_resp);
     Serial.write(reinterpret_cast<const uint8_t*>(s_resp.data()), s_resp.size());

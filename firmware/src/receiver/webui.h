@@ -11,12 +11,13 @@
 //   GET  /api/shots?since=<seq>  shots with seq > since, target status, counters
 //   POST /api/clear              drop the ring buffer, bump the clear counter
 //   POST /api/cmd   (form c=...) relay one console line to the target -> { ok, id }
+//   POST /api/cmd   (retry=<id>) resend that command with its original seq -> { ok, id }
 //   GET  /api/cmd?id=<id>        the target's reply -> { id, state, text, gap, age_ms }
 //                                state: "pending" | "done" | "unknown" (too old or never sent)
 //
 // Console commands over LoRa are not acknowledged. If no reply arrives, the
-// command may or may not have reached the target; the web app decides whether
-// it is safe to resend.
+// command may or may not have reached the target, so resend it with retry=<id>:
+// the target runs each seq once and answers a repeat with its saved reply.
 #pragma once
 
 #include <stdint.h>
@@ -27,8 +28,9 @@ namespace webui {
 
 // Starts the access point, DNS, mDNS and HTTP server. onClear is called when a
 // browser clears the group, so the caller can reset its own group statistics.
-// sendCmd transmits a console line to the target and returns the packet seq it used.
-void begin(void (*onClear)(), uint8_t (*sendCmd)(const char* text));
+// sendCmd transmits a console line to the target and returns the packet seq it
+// used: a new seq when seq is -1, otherwise that seq again (a retry).
+void begin(void (*onClear)(), uint8_t (*sendCmd)(const char* text, int seq));
 
 // Call from loop(). Serves HTTP and DNS requests.
 void poll();

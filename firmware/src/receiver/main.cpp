@@ -306,10 +306,12 @@ void localCommand(const char* cmd) {
   }
 }
 
-uint8_t transmitCommand(const char* text) {
+// seq -1 sends a new command; otherwise it resends with that seq, and the
+// target answers the repeat from its saved reply instead of running it again.
+uint8_t transmitCommand(const char* text, int seq = -1) {
   uint8_t buf[kMaxPacket];
-  const uint8_t seq = ++s_cmdSeq;
-  const size_t len = buildText(buf, PKT_CMD, seq, kPartLast, text, strlen(text));
+  if (seq < 0) seq = ++s_cmdSeq;
+  const size_t len = buildText(buf, PKT_CMD, static_cast<uint8_t>(seq), kPartLast, text, strlen(text));
   tx(buf, len);
   return seq;
 }
@@ -320,10 +322,11 @@ void sendCommand(const char* text) {
 }
 
 // Commands from the web app (calibration wizard and value editor).
-uint8_t sendWebCommand(const char* text) {
-  const uint8_t seq = transmitCommand(text);
-  Serial.printf("> [web to target] %s\n", text);
-  return seq;
+uint8_t sendWebCommand(const char* text, int seq) {
+  const bool retry = seq >= 0;
+  const uint8_t used = transmitCommand(text, seq);
+  Serial.printf("> [web to target%s] %s\n", retry ? ", retry" : "", text);
+  return used;
 }
 
 void pollSerial() {
@@ -352,6 +355,9 @@ void setup() {
   Serial.begin(115200);
   delay(200);
   Serial.println("\nOpenGong receiver ('rx help' for commands)");
+  // Random start, so commands after a receiver restart don't reuse the seqs the
+  // target saw just before it (the target treats a repeated seq as a retry).
+  s_cmdSeq = static_cast<uint8_t>(esp_random());
 
   pinMode(kVext, OUTPUT);
   digitalWrite(kVext, LOW);

@@ -244,6 +244,7 @@ Flags:
 - **Shot packets:** 20 bytes, about 103 ms on air (ACK: 9 bytes, about 72 ms). The receiver ACKs every copy it gets. If no ACK arrives, the target resends up to 3 times with a random back-off. Each target boot picks a random `boot` ID, and the receiver de-duplicates on (`boot`, `n`).
 - **Status:** the target sends a status packet every 30 s.
 - **Command responses:** sent back in 200-byte chunks.
+- **Command retries:** commands aren't acknowledged. If no reply arrives, the web app resends the same command up to twice, with the same sequence number. The target remembers the last command it ran, and for 60 s it answers a repeat of that command with the saved reply instead of running it again, so a retried `cal at` or `cal undo` can't add or remove an extra tap. A line you retype into the receiver's serial monitor is a new command and runs again.
 
 ## Host test
 

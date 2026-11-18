@@ -120,7 +120,7 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `set d <ch> <ns>` | Channel delay (normally set by `cal apply`) |
 | `set v <m/s>` / `set h <mm>` | Wave speed / plate thickness |
 | `set aim <x> <y>` / `set flip <fx> <fy>` | Reported origin / axis mirroring |
-| `set n <3-5>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
+| `set n <4-5>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
 | `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window / hold-off / residual flag limit |
 | `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved. `load` goes back to the saved settings; if nothing is saved, it leaves the live settings alone |
 | `export` | Print every setting as a `set` command, as a backup you can paste back |

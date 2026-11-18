@@ -14,7 +14,7 @@
 // Adding a field: give it a default in configDefaults() and its own key in
 // readKeys()/writeKeys() in config.cpp. Stored settings survive the update.
 struct Config {
-  uint8_t  n_ch;            // configured sensor channels (3-5)
+  uint8_t  n_ch;            // configured sensor channels (4-5)
   uint8_t  min_ch;          // channels required to accept a shot
   float    sx[og::kMaxChannels];        // sensor positions, mm
   float    sy[og::kMaxChannels];

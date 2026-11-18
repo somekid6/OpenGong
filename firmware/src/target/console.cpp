@@ -25,7 +25,7 @@ const char kHelp[] =
     "  set h <mm>               plate thickness\n"
     "  set aim <x> <y>          point reported as 0,0\n"
     "  set flip <fx> <fy>       mirror reported x/y (0|1)\n"
-    "  set n <3-5>              sensor count (save + reboot)\n"
+    "  set n <4-5>              sensor count (save + reboot)\n"
     "  set minch <n>            channels needed per shot\n"
     "  set win <us> | hold <ms> | rlim <ns>\n"
     "  save | load | defaults | reboot\n"

@@ -154,7 +154,9 @@ bool configValidate(const Config& c, char* why, size_t whyLen) {
     if (why && whyLen) snprintf(why, whyLen, "%s", msg);
     return false;
   };
-  if (c.n_ch < 3 || c.n_ch > og::kMaxChannels) return fail("n must be 3-5");
+  // At least 4: with 3 the fit is exact, so a mistriggered channel can't be
+  // detected, and the defaults (minch 4) would reject every shot until reboot.
+  if (c.n_ch < 4 || c.n_ch > og::kMaxChannels) return fail("n must be 4-5");
   if (c.min_ch < 3 || c.min_ch > c.n_ch) return fail("minch must be 3..n");
   if (!(c.speed_mps > 500 && c.speed_mps < 20000)) return fail("v out of range");
   if (!(c.thick_mm >= 0 && c.thick_mm < 100)) return fail("h out of range");

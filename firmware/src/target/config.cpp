@@ -162,6 +162,8 @@ bool configValidate(const Config& c, char* why, size_t whyLen) {
   if (!(c.thick_mm >= 0 && c.thick_mm < 100)) return fail("h out of range");
   if (c.window_us < 20 || c.window_us > 5000) return fail("win must be 20-5000 us");
   if (c.holdoff_ms > 5000) return fail("hold must be <= 5000 ms");
+  // Below the ~200 ns timing scatter nearly every shot would be flagged.
+  if (c.resid_limit_ns < 50 || c.resid_limit_ns > 10000) return fail("rlim must be 50-10000 ns");
   if (!isfinite(c.aim_x) || !isfinite(c.aim_y)) return fail("non-finite aim point");
   for (int i = 0; i < c.n_ch; ++i) {
     if (!isfinite(c.sx[i]) || !isfinite(c.sy[i]) || !isfinite(c.delay_ns[i]))

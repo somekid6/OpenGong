@@ -121,7 +121,7 @@ Commands are typed into the target's serial monitor, or into the receiver's (whi
 | `set v <m/s>` / `set h <mm>` | Wave speed / plate thickness |
 | `set aim <x> <y>` / `set flip <fx> <fy>` | Reported origin / axis mirroring |
 | `set n <4-5>` / `set minch <n>` | Sensor count (needs `save` + `reboot`) / channels needed per shot |
-| `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window / hold-off / residual flag limit |
+| `set win <us>` / `set hold <ms>` / `set rlim <ns>` | Capture window (20–5000 µs) / hold-off (0–5000 ms) / residual flag limit (50–10000 ns) |
 | `save`, `load`, `defaults`, `reboot` | Flash storage. Changes are live right away but are lost on reboot unless saved. `load` goes back to the saved settings; if nothing is saved, it leaves the live settings alone |
 | `export` | Print every setting as a `set` command, as a backup you can paste back |
 | `sim <pt> [noise_ns]` | Inject a synthetic hit (`<pt>` = `<x> <y>` or a guide name such as `P2`) |

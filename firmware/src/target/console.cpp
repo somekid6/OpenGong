@@ -1,5 +1,6 @@
 #include "console.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -88,6 +89,19 @@ bool parseF(const char* s, float& v, Print& out) {
   return true;
 }
 
+// Parses a whole number and range-checks it before it is narrowed to the
+// config field's type, so "set hold 70000" can't wrap to 4464 and pass.
+bool parseU(const char* s, uint32_t lo, uint32_t hi, uint32_t& v, const char* name, Print& out) {
+  float f;
+  if (!parseF(s, f, out)) return false;
+  if (!(f >= lo && f <= hi) || f != floorf(f)) {
+    out.printf("error: %s must be a whole number %lu-%lu\n", name, (unsigned long)lo, (unsigned long)hi);
+    return false;
+  }
+  v = static_cast<uint32_t>(f);
+  return true;
+}
+
 void show(Print& o) {
   const Config& c = g_cfg;
   o.printf("channels %u (active %d), minch %u\n", c.n_ch, g_activeCh, c.min_ch);
@@ -124,6 +138,7 @@ void cmdSet(char* save, Print& out) {
   }
   Config next = g_cfg;
   float f1, f2;
+  uint32_t u;
   int ch;
 
   if (!strcmp(what, "s")) {
@@ -148,21 +163,21 @@ void cmdSet(char* save, Print& out) {
     next.flip_x = f1 != 0;
     next.flip_y = f2 != 0;
   } else if (!strcmp(what, "n")) {
-    if (!parseF(a, f1, out)) return;
-    next.n_ch = static_cast<uint8_t>(f1);
+    if (!parseU(a, 4, og::kMaxChannels, u, "n", out)) return;
+    next.n_ch = static_cast<uint8_t>(u);
     if (next.min_ch > next.n_ch) next.min_ch = next.n_ch;
   } else if (!strcmp(what, "minch")) {
-    if (!parseF(a, f1, out)) return;
-    next.min_ch = static_cast<uint8_t>(f1);
+    if (!parseU(a, 3, og::kMaxChannels, u, "minch", out)) return;
+    next.min_ch = static_cast<uint8_t>(u);
   } else if (!strcmp(what, "win")) {
-    if (!parseF(a, f1, out)) return;
-    next.window_us = static_cast<uint16_t>(f1);
+    if (!parseU(a, 20, 5000, u, "win", out)) return;
+    next.window_us = static_cast<uint16_t>(u);
   } else if (!strcmp(what, "hold")) {
-    if (!parseF(a, f1, out)) return;
-    next.holdoff_ms = static_cast<uint16_t>(f1);
+    if (!parseU(a, 0, 5000, u, "hold", out)) return;
+    next.holdoff_ms = static_cast<uint16_t>(u);
   } else if (!strcmp(what, "rlim")) {
-    if (!parseF(a, f1, out)) return;
-    next.resid_limit_ns = static_cast<uint16_t>(f1);
+    if (!parseU(a, 50, 10000, u, "rlim", out)) return;
+    next.resid_limit_ns = static_cast<uint16_t>(u);
   } else {
     out.printf("error: unknown setting '%s'\n", what);
     return;

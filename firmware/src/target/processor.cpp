@@ -142,7 +142,8 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
   if (nf < nch) flags |= og::SHOT_MISSING_CH;
 
   // Solve with channel delays removed.
-  const bool calTap = s_cal.active && s_cal.havePoint;
+  // A `sim` hit is synthetic, so it must never be stored as a calibration tap.
+  const bool calTap = s_cal.active && s_cal.havePoint && !(extraFlags & og::SHOT_SIM);
   const double h = solveThickness(c);
   const og::Geometry g = geometryFrom(c, nch, h);
   double tc[og::kSolverMaxCh] = {0};

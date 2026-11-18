@@ -100,6 +100,7 @@ enum ShotFlags : uint8_t {
   SHOT_NO_FIX       = 0x10,  // solver failed; x/y are meaningless
   SHOT_CAL          = 0x20,  // calibration tap
   SHOT_SIM          = 0x40,  // synthetic shot from the "sim" command
+  SHOT_CHECK        = 0x80,  // taken while "check" is on: keep it out of the group
 };
 
 // StatusPacket.mode bits.

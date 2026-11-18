@@ -235,6 +235,7 @@ Flags:
 | `no_fix` | The solver failed |
 | `cal` | Calibration tap |
 | `sim` | Synthetic shot from `sim` |
+| `check` | Taken while `check` is on; left out of the group |
 
 `batt_mv` reads the Heltec battery divider, so it only means something with a LiPo connected to the board's battery connector. On a USB power bank, ignore it. If your board is a V3.2, set `kVbatCtrlOn` to `HIGH` in [board.h](src/target/board.h).
 

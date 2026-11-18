@@ -204,10 +204,10 @@ bool seenBefore(uint16_t boot, uint16_t shot) {
 
 void printFlags(uint8_t f) {
   static const char* names[] = {"missing_ch", "high_resid", "dropped_ch", "outside_ring",
-                                "no_fix",     "cal",        "sim"};
+                                "no_fix",     "cal",        "sim",        "check"};
   Serial.print('[');
   bool first = true;
-  for (int b = 0; b < 7; ++b) {
+  for (int b = 0; b < 8; ++b) {
     if (!(f & (1u << b))) continue;
     Serial.printf("%s\"%s\"", first ? "" : ",", names[b]);
     first = false;
@@ -223,7 +223,7 @@ void handleShot(const ShotPacket& p, float rssi, float snr) {
   }
 
   const bool fix = !(p.flags & SHOT_NO_FIX);
-  if (fix && !(p.flags & (SHOT_CAL | SHOT_SIM))) addHit(p.x_dmm / 10.0f, p.y_dmm / 10.0f);
+  if (fix && !(p.flags & (SHOT_CAL | SHOT_SIM | SHOT_CHECK))) addHit(p.x_dmm / 10.0f, p.y_dmm / 10.0f);
   webui::recordShot(p, rssi, snr);
   float mx, my, es;
   groupStats(mx, my, es);

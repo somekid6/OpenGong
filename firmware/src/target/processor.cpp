@@ -82,10 +82,10 @@ void printMask(Print& o, uint8_t m, int n) {
 
 void printFlags(Print& o, uint8_t f) {
   static const char* names[] = {"missing_ch", "high_resid", "dropped_ch", "outside_ring",
-                                "no_fix",     "cal",        "sim"};
+                                "no_fix",     "cal",        "sim",        "check"};
   o.print('[');
   bool first = true;
-  for (int b = 0; b < 7; ++b) {
+  for (int b = 0; b < 8; ++b) {
     if (!(f & (1u << b))) continue;
     if (!first) o.print(',');
     o.printf("\"%s\"", names[b]);
@@ -159,6 +159,9 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
   if (dropped) flags |= og::SHOT_DROPPED_CH;
   if (fix && f.rms_ns > c.resid_limit_ns) flags |= og::SHOT_HIGH_RESID;
   if (fix && hypot(f.x - cx, f.y - cy) > ringR + 2.0) flags |= og::SHOT_OUTSIDE_RING;
+
+  // A check tap is not a real shot, so the receiver must keep it out of its group.
+  if (s_check && !calTap) flags |= og::SHOT_CHECK;
 
   // Calibration: store the raw (uncorrected) times at the current known point.
   if (calTap) {

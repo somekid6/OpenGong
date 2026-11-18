@@ -94,6 +94,15 @@ void printFlags(Print& o, uint8_t f) {
   o.print(']');
 }
 
+// Plate thickness to solve with. Calibration and check taps use the calibration
+// face (back face by default: the jig's punch guides strike the same face as the
+// sensors). Shared by the solver and `sim` so a simulated hit is generated with
+// the same geometry it is solved with.
+double solveThickness(const Config& c) {
+  const bool calFace = (s_cal.active && s_cal.havePoint) || s_check;
+  return (calFace && s_cal.backFace) ? 0.0 : c.thick_mm;
+}
+
 }  // namespace
 
 void processorBegin(uint16_t bootId) { s_bootId = bootId; }
@@ -134,9 +143,7 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
 
   // Solve with channel delays removed.
   const bool calTap = s_cal.active && s_cal.havePoint;
-  // Calibration and check taps use the calibration face (back face by default:
-  // the jig's punch guides strike the same face as the sensors).
-  const double h = ((calTap || s_check) && s_cal.backFace) ? 0.0 : c.thick_mm;
+  const double h = solveThickness(c);
   const og::Geometry g = geometryFrom(c, nch, h);
   double tc[og::kSolverMaxCh] = {0};
   for (int i = 0; i < nch; ++i) tc[i] = t_us[i] - c.delay_ns[i] / 1000.0;
@@ -242,7 +249,7 @@ bool processorCalActive() { return s_cal.active; }
 void processorSimulate(float x, float y, float noiseNs, Print& out) {
   const Config& c = g_cfg;
   const int nch = g_activeCh;
-  const og::Geometry g = geometryFrom(c, nch, (s_cal.active && s_cal.backFace) ? 0.0 : c.thick_mm);
+  const og::Geometry g = geometryFrom(c, nch, solveThickness(c));
   double t[og::kSolverMaxCh];
   og::predictArrivals(g, x, y, 10.0, t);
 

@@ -2,7 +2,7 @@
 
 ## 1. Summary
 
-The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$80–110**, and the two radio boards are the biggest item.
+The system meets a **5 mm accuracy target** with simple, cheap parts. It uses **5 piezo sensors** bonded to the back of the plate, **plain threshold comparators** whose outputs are hardware-timestamped by an **ESP32-S3**, and a **LoRa link** to a matching receiver at the firing line. Parts cost is roughly **$130–195** (the BOM in section 12), plus a power bank, steel shield and antenna mast; the two radio boards are the biggest single item.
 
 - **Expected accuracy:** about 1–3 mm typical, inside 5 mm for 95% of hits within the sensor ring. These are estimates; the punch test confirms them.
 - **What sets the accuracy:** large timing mistakes, not timing precision. The ESP32-S3 timestamps to 12.5 ns, far finer than needed. The real risk is a channel triggering on the wrong part of the wave. Section 11 covers how to prevent that.
@@ -27,7 +27,7 @@ Sensor placement from a 3D-printed jig (about ±0.5 mm) and changes in wave spee
 
 ## 3. System architecture
 
-**Signal chain:** piezo sensor → protection + high-pass filter + buffer → threshold comparator → ESP32-S3 hardware capture pin → position solver → LoRa radio (915 MHz) → about 500 m → receiver board → Wi-Fi web app or USB → phone or laptop.
+**Signal chain:** piezo sensor → protection + high-pass filter + buffer → threshold comparator → ESP32-S3 hardware capture pin → position solver → LoRa radio (915 MHz US, 868 MHz EU) → about 500 m → receiver board → Wi-Fi web app or USB → phone or laptop.
 
 Each shot produces one timestamp per sensor; no waveform is recorded. The ESP32's built-in ADC is too slow to record these signals usefully, but recording isn't needed at 5 mm.
 
@@ -128,7 +128,7 @@ Each sensor gets its own **cover pod**, and optional **cable clips** hold the lo
 1. **Protection:** a 10 kΩ series resistor and BAV99 clamp diodes to the supply rails, plus a 1 MΩ bias resistor. Piezos can produce over 100 V on impact.
 2. **High-pass filter at about 50 kHz:** removes slow plate bending, stand and chain rattle, and wind noise.
 3. **Buffer/gain:** a fast single-supply op-amp such as the OPA2350 (dual), gain 2–10, biased at mid-rail (1.65 V).
-4. **Threshold comparator:** TLV3502 (dual, fast) or a cheaper LMV393, with a little hysteresis. One shared threshold for all channels, set with a trim pot or an ESP32 PWM pin through an RC filter (the ESP32-S3 has no DAC). Set it a few times above the noise floor. A low threshold keeps the trigger close to the true wave arrival.
+4. **Threshold comparator:** TLV3502 (dual, fast, push-pull), with a little hysteresis. It must be a push-pull part: an open-drain comparator such as the LMV393 needs pull-ups the analog board doesn't have, and with the firmware's capture-pin pull-downs its output would never go high. One shared threshold for all channels, set with a trim pot or an ESP32 PWM pin through an RC filter (the ESP32-S3 has no DAC). Set it a few times above the noise floor. A low threshold keeps the trigger close to the true wave arrival.
 5. **Optional peak detector** (diode + capacitor + bleed resistor) read by the ESP32's ordinary ADC after each shot. It records how strong each channel's signal was, so software can correct strong-versus-weak trigger delay if the punch test shows it's needed. It costs a few cents per channel.
 
 ## 6. Timing: ESP32-S3 hardware capture
@@ -162,7 +162,7 @@ Each sensor gets its own **cover pod**, and optional **cable clips** hold the lo
 
 2. **Punch points:** fitting points are P0 at (0, 0), P1 (0, 60), P2 (57.06, 18.54), P3 (35.27, −48.54), P4 (−35.27, −48.54) and P5 (−57.06, 18.54). Held-out points are H1 (87.50, 28.43), H2 (54.08, −74.43) and H4 (−87.50, 28.43). Fire a spring-loaded automatic center punch through each guide 3–5 times.
 3. **Punch-face correction:** taps through the jig start on the back face, the same face as the sensors. For these taps, set the plate thickness to zero in the fit. Live shots then use the real thickness.
-4. **Fit:** on a laptop (Python/SciPy), fit the wave speed and each channel's fixed delay from the P taps. Save the results to the target over Wi-Fi or LoRa; they're stored in the ESP32's non-volatile memory. Recalibrate for each plate.
+4. **Fit:** the target fits the wave speed and each channel's fixed delay from the P taps itself (`cal fit`), so no laptop is needed. Run it from the serial console, or from the phone web app over LoRa. Save the results on the target; they're stored in the ESP32's non-volatile memory. Recalibrate for each plate.
 5. **Check:** tap the H points. If all of them come out within about 2 mm, you're done.
 6. **Live-fire check:** compare reported positions to the measured centers of the bullet splash marks.
 
@@ -234,7 +234,7 @@ Keep at least **10 dB** of margin for fading and changes from day to day. Under 
 ### 9.5 Regional rules
 
 - **US (902–928 MHz):** +17 dBm with ordinary dipoles is well under the 1 W limit, but the operating rules depend on how the device is certified. Check the rules that apply to your setup.
-- **EU (868 MHz):** set `-DOG_BAND=868` in `platformio.ini` and reflash both boards. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. The EU build uses 868.1 MHz, so the whole 125 kHz channel stays inside that band, and transmits at +14 dBm. A build that asks for more than +14 dBm won't compile. At SF8, 1% (36 s of airtime per hour) allows about 300 acknowledged shots per hour, which is ample for normal shooting. The firmware doesn't count airtime, so keeping under the duty cycle is up to you. The 3 dB less power costs about 3 dB of link margin in section 9.2.
+- **EU (868 MHz):** set `-DOG_BAND=868` in `platformio.ini` and reflash both boards. The common 868.0–868.6 MHz band allows **25 mW ERP (+14 dBm)** and a **1% duty cycle**. The EU build uses 868.1 MHz, so the whole 125 kHz channel stays inside that band, and transmits at +14 dBm. A build that asks for more than +14 dBm won't compile. At SF8, 1% is 36 s of airtime per hour. The 30 s status heartbeat (17 bytes, about 93 ms each) uses about 11 s of that, and each shot packet (20 bytes) takes about 103 ms, which leaves room for about 240 shots per hour, fewer with retries or calibration replies. That is ample for normal shooting. The firmware doesn't count airtime, so keeping under the duty cycle is up to you. The 3 dB less power costs about 3 dB of link margin in section 9.2.
 
 ### 9.6 Signal range test
 
@@ -326,11 +326,11 @@ These rules apply to every round:
 | Heltec WiFi LoRa 32 V3 (target + receiver) | 2 | $40 |
 | 12–15 mm piezo discs | 20 | $5 |
 | OPA2350 dual op-amp | 3 | $9 |
-| TLV3502 dual comparator (or LMV393 to save money) | 3 | $3–9 |
+| TLV3502 dual comparator (must be push-pull; not LMV393) | 3 | $7–9 |
 | Trim pot, BAV99 diodes, resistors, capacitors | — | $5 |
 | [Analog board PCB](../hardware/analog-board/README.md) (JLCPCB/PCBWay, 5 pcs) or perfboard | 1 | $5–15 |
 | 2-core shielded cable (braided/spiral shield, ~2 m), connectors, epoxy | — | $10 |
-| 915 MHz dipole antennas | 2 | $10 |
+| 915 MHz (US) or 868 MHz (EU) dipole antennas | 2 | $10 |
 | Rubber-coated neodymium pot magnets, Ø22 mm, M4 thread, ≥5 kg pull (sensor covers, section 4.3) | 15 | $20–40 |
 | PETG filament for jig and covers, M4 screws or nuts, washers, threadlocker, cable ties | — | $5 |
 | USB power bank | 1 | $0–20 |

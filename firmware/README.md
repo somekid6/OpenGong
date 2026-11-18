@@ -204,7 +204,7 @@ What you get:
 
 **API.** The app polls `GET /api/shots?since=<seq>` twice a second. The reply has the receiver's boot id and sequence counter, a clear counter, the target's last-heard status and the buffered shots newer than `seq`, each with the same fields as the serial JSON plus `seq` and `t_ms`. `POST /api/clear` empties the buffer and bumps the clear counter. Shot keys are (`boot`, `n`), the same as the serial de-duplication. Anything else that reads the receiver can use the same two calls.
 
-`POST /api/cmd` with the form field `c=<command>` relays one console command to the target and returns `{ok, id}`. Poll `GET /api/cmd?id=<id>` until `state` is `done`; `text` then holds the target's reply, exactly as the serial console prints it. If `gap` is true, a chunk of the reply was lost. The receiver keeps the last 4 commands. Commands over LoRa aren't acknowledged, so if no reply arrives within a few seconds, the command may or may not have run. Resend only commands that are safe to repeat; the calibration wizard never resends `cal undo`. `rx` commands are serial-only.
+`POST /api/cmd` with the form field `c=<command>` relays one console command to the target and returns `{ok, id}`. Poll `GET /api/cmd?id=<id>` until `state` is `done`; `text` then holds the target's reply, exactly as the serial console prints it. If `gap` is true, a chunk of the reply was lost. The receiver keeps the last 4 commands. Commands over LoRa aren't acknowledged, so if no reply arrives within a few seconds, `POST /api/cmd` with `retry=<id>` resends that command with its original sequence number; the target answers a repeat with its saved reply instead of running it again (see *Command retries* below). The calibration wizard retries this way, up to twice. A new `c=<command>` POST is a new command and runs again. `rx` commands are serial-only.
 
 **Changing the page.** Edit [src/receiver/web/index.html](src/receiver/web/index.html) and rebuild; [tools/embed_web.py](tools/embed_web.py) gzips it into `src/receiver/web_page.h` (generated, not committed) before each receiver build. To work on the page without a receiver, open the file in a browser with `?demo` on the URL: it then invents shots, and a simulated target answers the calibration and signal range test panels, with a **Simulate tap** button.
 
@@ -214,14 +214,14 @@ Lines starting with `{` are JSON events; all other lines are for people to read.
 
 Target:
 ```json
-{"type":"shot","n":12,"x":-3.4,"y":21.7,"px":155.8,"py":174.1,"rms_ns":96,"fired":"12345","used":"12345","flags":[],"t_ns":[0.0,18412.5,30125.0,29987.5,17250.0]}
+{"type":"shot","n":12,"x":-3.4,"y":21.7,"px":-3.4,"py":21.7,"rms_ns":96,"fired":"12345","used":"12345","flags":[],"t_ns":[0.0,18412.5,30125.0,29987.5,17250.0]}
 {"type":"reject","fired":"-2---","need":4}
 ```
 
 Receiver:
 ```json
 {"type":"shot","boot":40211,"n":12,"x":-3.4,"y":21.7,"rms_ns":96,"fired":31,"used":31,"flags":[],"batt_mv":4105,"rssi":-92,"snr":7.5,"group":{"n":5,"mpi_x":-1.2,"mpi_y":18.0,"es_mm":31.4}}
-{"type":"status","boot":40211,"shots":12,"rejects":1,"batt_mv":4105,"uptime_min":14,"n_ch":5,"mode":"normal","rssi":-91}
+{"type":"status","boot":40211,"shots":12,"rejects":1,"batt_mv":4105,"uptime_min":14,"n_ch":5,"mode":"normal","defaults":false,"rssi":-91}
 ```
 
 Flags:
@@ -259,7 +259,7 @@ The solver has no hardware dependencies. [solver_sim.cpp](test/host/solver_sim.c
 g++ -O2 -std=c++17 -I lib/OpenGongSolver test/host/solver_sim.cpp lib/OpenGongSolver/Solver.cpp -o solver_sim && ./solver_sim
 ```
 
-Current result: 200 ns timing scatter gives a 1.1 mm mean and 2.2 mm 95th-percentile error. Calibration recovers the wave speed to within 0.1%. Without calibration, a 4% speed error plus channel delays costs up to 9 mm.
+Current result: on the 140 mm ring the test simulates, 200 ns timing scatter gives about a 1.3 mm mean and 2.4 mm 95th-percentile error (System-Design 2; the test fails above 2.0 / 4.0 mm). Calibration recovers the wave speed to within 0.1%. Without calibration, a 4% speed error plus channel delays costs up to 9 mm.
 
 ## Known limits
 

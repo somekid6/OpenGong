@@ -58,7 +58,7 @@ One VMID and one VTH serve all five channels. Turn RV1 until the comparators sto
 | `3V3` | FB1 → +3V3A analog rail | Always-on 3.3 V. Don't use `Ve`; it's switched by GPIO36. |
 | `GND` | Analog board GND (single point) | Star ground; cable shields tie here only. |
 | USB-C | Power bank (5 V) | Bank must supply ≥600 mA without auto-shutoff. |
-| LoRa U.FL | 915 MHz dipole | Connect before powering on. |
+| LoRa U.FL | 915 MHz (US) or 868 MHz (EU) dipole | Connect before powering on. |
 
 Pins already used on the board, so leave them alone: `GPIO8–14` (SX1262 radio), `GPIO17/18/21` (OLED), `GPIO0` (button), `GPIO1` (battery ADC), `GPIO35` (LED), `GPIO36` (Vext), `GPIO19/20` (USB), `GPIO43/44` (serial). Avoid strapping pins `GPIO3`, `GPIO45` and `GPIO46`. MCPWM inputs route through the GPIO matrix, so any free pin works if you prefer others.
 

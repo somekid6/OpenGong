@@ -246,7 +246,7 @@ void consoleExec(char* line, Print& out) {
     // Only replaces the live settings when flash holds usable ones, so an
     // unsaved calibration isn't thrown away for the defaults.
     Config c;
-    char why[64];
+    char why[96];
     const ConfigSource src = configLoad(c, why, sizeof why);
     if (src == ConfigSource::Defaults) {
       out.println("error: nothing saved, live settings unchanged");

@@ -142,11 +142,11 @@ The receiver runs its own Wi-Fi network, so no laptop, cable or internet is need
 
 What you get:
 
-- The plate drawn to scale, each hit as a bullet-sized hole numbered in order, the newest in red. Flagged shots (`high_resid`, `missing_ch`, `dropped_ch`, `outside_ring`) get an amber ring and a note; `sim` shots are dashed; `cal` taps and `no_fix` shots are listed but not plotted.
+- The plate drawn to scale, each hit as a bullet-sized hole numbered in order, the newest in red. Flagged shots (`high_resid`, `missing_ch`, `dropped_ch`, `outside_ring`) get an amber ring and a note; `sim` shots are dashed; `cal` taps, check taps and `no_fix` shots are listed but not plotted.
 - Group centre, extreme spread and mean radius for the shots on screen, in inches or mm and in MOA and mil.
 - **Show last** 10, 20, 50 or all shots. Tap a hit or a table row to highlight it.
 - **Clear shots** starts a new group everywhere: this browser, the receiver's OLED and every other connected browser.
-- **Target calibration** reads the target's calibration values and walks you through calibrating from your phone, with the jig on the plate:
+- **Target calibration** reads the target's calibration values (when you press **Start guided calibration** or **Read values from target**) and walks you through calibrating from your phone, with the jig on the plate:
   1. Tap each round guide P0–P5 3–5 times. A diagram of the jig, seen from the back, shows which guide is next, and each tap appears as it's recorded. **Undo last tap** removes a slip.
   2. The target fits the wave speed and channel delays. The page shows the fitted values next to the old ones, plus each guide's error.
   3. Apply the fit, then tap each square guide H1, H2 and H4 to check it. Aim for a mean error under 2 mm.
@@ -202,7 +202,7 @@ What you get:
 
 **Network notes.** Up to 4 devices can connect. Wi-Fi range from the Heltec's small PCB antenna is roughly 10–30 m, so keep the receiver on the bench. The receiver answers the operating system's "is the internet reachable" checks so that phones stay on the network without nagging; while connected, other apps on that device have no internet. Wi-Fi adds about 100 mA to the receiver's draw, so budget for it on battery. The Heltec's Wi-Fi and LoRa radios are independent, so the web app doesn't affect shot reception.
 
-**API.** The app polls `GET /api/shots?since=<seq>` twice a second. The reply has the receiver's boot id and sequence counter, a clear counter, the target's last-heard status and the buffered shots newer than `seq`, each with the same fields as the serial JSON plus `seq` and `t_ms`. `POST /api/clear` empties the buffer and bumps the clear counter. Shot keys are (`boot`, `n`), the same as the serial de-duplication. Anything else that reads the receiver can use the same two calls.
+**API.** The app polls `GET /api/shots?since=<seq>` twice a second. The reply has the receiver's boot id and sequence counter, a clear counter, the target's last-heard status and the buffered shots newer than `seq`, each with `seq`, `boot`, `n`, `x`, `y` (mm), `rms` (ns), `fired` and `used` (channel bitmasks, bit 0 = channel 1), `flags` (the shot flag bits as a number, see [Serial output](#serial-output)), `batt_mv`, `rssi`, `snr` and `t_ms`. Unlike the serial JSON, `x` and `y` are always present (0 on a `no_fix` shot) and there is no `group` field. `POST /api/clear` empties the buffer and bumps the clear counter. Shot keys are (`boot`, `n`), the same as the serial de-duplication. Anything else that reads the receiver can use the same two calls.
 
 `POST /api/cmd` with the form field `c=<command>` relays one console command to the target and returns `{ok, id}`. Poll `GET /api/cmd?id=<id>` until `state` is `done`; `text` then holds the target's reply, exactly as the serial console prints it. If `gap` is true, a chunk of the reply was lost. The receiver keeps the last 4 commands. Commands over LoRa aren't acknowledged, so if no reply arrives within a few seconds, `POST /api/cmd` with `retry=<id>` resends that command with its original sequence number; the target answers a repeat with its saved reply instead of running it again (see *Command retries* below). The calibration wizard retries this way, up to twice. A new `c=<command>` POST is a new command and runs again. `rx` commands are serial-only.
 

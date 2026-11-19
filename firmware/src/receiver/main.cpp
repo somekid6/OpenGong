@@ -36,7 +36,7 @@ volatile bool s_irq = false;
 
 // The radio is serviced by its own task, so a shot is ACKed within a few ms
 // even while loop() is busy serving the web app or redrawing the OLED. The
-// target only waits about 220 ms for the ACK. The task hands each valid packet
+// target waits only about 250-370 ms for each ACK. The task hands each valid packet
 // to loop() through s_rxq; s_radioMux guards every SX1262 access.
 struct RxMsg {
   uint8_t len;

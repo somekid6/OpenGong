@@ -122,6 +122,33 @@ bool readLegacy(Preferences& p, Config& c) {
   return true;
 }
 
+// Older firmware accepted values the current rules reject (n 3; rlim outside
+// 50-10000 ns). Bring them into range instead of discarding the whole
+// calibration over one setting, and append what changed to why.
+void repairOld(Config& c, char* why, size_t whyLen) {
+  char note[48] = "";
+  size_t len = 0;
+  auto add = [&](const char* name, unsigned from, unsigned to) {
+    if (len < sizeof note)
+      len += snprintf(note + len, sizeof note - len, "%s%s %u->%u", len ? ", " : "", name, from, to);
+  };
+  if (c.n_ch == 3) {
+    // Channel 4's stored position and delay are used; with minch still 3,
+    // 3-sensor shots keep solving (flagged missing_ch).
+    add("n", 3, 4);
+    c.n_ch = 4;
+  }
+  if (c.resid_limit_ns < 50 || c.resid_limit_ns > 10000) {
+    const uint16_t to = c.resid_limit_ns < 50 ? 50 : 10000;
+    add("rlim", c.resid_limit_ns, to);
+    c.resid_limit_ns = to;
+  }
+  if (!len || !why || !whyLen) return;
+  const size_t used = strlen(why);
+  if (used < whyLen)
+    snprintf(why + used, whyLen - used, "%sadjusted %s; 'save' to keep", used ? "; " : "", note);
+}
+
 }  // namespace
 
 void configDefaults(Config& c) {
@@ -203,6 +230,7 @@ ConfigSource configLoad(Config& c, char* why, size_t whyLen) {
   }
 
   if (src != ConfigSource::Defaults && src != ConfigSource::Rejected) {
+    repairOld(tmp, why, whyLen);
     char reason[48];
     if (!configValidate(tmp, reason, sizeof reason)) {
       src = ConfigSource::Rejected;

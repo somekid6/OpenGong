@@ -78,7 +78,7 @@ void setup() {
   Serial.println("\nOpenGong target");
 
   s_bootId = static_cast<uint16_t>(esp_random());
-  char why[64];
+  char why[96];
   g_cfgSource = configLoad(g_cfg, why, sizeof why);
   switch (g_cfgSource) {
     case ConfigSource::Saved:

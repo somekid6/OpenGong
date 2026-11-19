@@ -263,7 +263,7 @@
 const $ = id => document.getElementById(id);
 const IN = 25.4, MOA = Math.PI / (180 * 60), MIL01 = 1e-4;
 const DEMO = /[?&]demo/.test(location.search);
-// Bits 0-6 come from the target. This page sets bit 8 on check taps during calibration and bit 9 on signal range test shots.
+// Bits 0-7 come from the target. This page sets bit 8 on check taps (including the target's bit 7) and bit 9 on signal range test shots.
 const FLAGS = ['missing_ch', 'high_resid', 'dropped_ch', 'outside_ring', 'no_fix', 'cal', 'sim', '', 'cal_check', 'signal_range_test'];
 const F_MISSING = 0x01, F_RESID = 0x02, F_NOFIX = 0x10, F_CAL = 0x20, F_SIM = 0x40, F_TGT_CHECK = 0x80, F_CHECK = 0x100, F_RANGE = 0x200;
 const F_SUSPECT = 0x01 | 0x02 | 0x04 | 0x08;
@@ -874,7 +874,6 @@ const ACTS = {
   speed(v) { W.fitV = v === 'fit'; renderWiz(); },
   start: () => run(async () => {
     W.before = await readConfig();
-    if (W.before.active < 3) throw new Error('The target has fewer than 3 active channels.');
     const t = expectOk(await targetCmd('cal start' + (W.face === 'front' ? ' front' : '')));
     if (!/cal: started/.test(t)) throw new Error('Unexpected reply: ' + firstLine(t));
     await targetCmd('check off');

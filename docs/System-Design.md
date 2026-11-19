@@ -316,7 +316,7 @@ These rules apply to every round:
 - **Triggering on different waves (biggest risk):** an impact sends a weak fast wave and a strong slow wave through the plate. If near sensors catch the fast wave and far sensors only the slow one, a shot can be off by centimeters. Fixes: a low threshold, enough gain that every channel catches the fast wave, and the residual check to flag shots where this happens.
 - **Strong-versus-weak trigger delay:** a weak signal crosses the threshold a little later than a strong one. At 5 mm this should stay within budget; if not, add the peak-detector correction (section 5).
 - **False triggers:** from fragments hitting the stand or shots on nearby steel. Require at least 4 channels to fire within the 200 µs window, and reject shots with large residuals.
-- **Sensor debonding** from repeated shock: watch each channel's residuals over time and re-glue a sensor whose numbers drift.
+- **Sensor debonding** from repeated shock: watch each channel's residuals over time and re-glue a sensor whose numbers drift. The web app's **Sensor health** panel does part of this automatically: it counts how often each sensor missed a shot or was dropped by the solver over the last 20 live shots, and warns when one sensor reaches 5.
 - **Plate cratering:** damage changes how waves travel locally. Inspect the plate and replace it when worn.
 
 ## 12. Bill of materials (approximate)

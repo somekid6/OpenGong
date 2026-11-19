@@ -133,6 +133,11 @@
   .man input { width: 100%; }
   .man label.pos { grid-column: span 2; }
   .wiz .tblwrap { margin: 4px 0 12px; }
+  .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; background: var(--panel); border: 1px solid var(--warn);
+    border-left-width: 4px; border-radius: 10px; padding: 8px 10px 8px 12px; margin: 0 0 10px; font-size: 14px; }
+  .banner .txt { flex: 1 1 220px; }
+  .banner button { padding: 6px 11px; font-size: 13px; }
+  td.bad { color: var(--bad); font-weight: 600; }
   details.inner { border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 0; margin: 10px 0 0; }
 </style>
 </head>
@@ -144,6 +149,8 @@
   <span class="spacer"></span>
   <button id="btnClear">Clear shots</button>
 </header>
+
+<div class="banner" id="sensorWarn" role="status" hidden></div>
 
 <div class="wrap">
   <canvas id="cv" width="800" height="800" aria-label="Target plate with impacts"></canvas>
@@ -241,6 +248,12 @@
   <div id="rtBody"></div>
 </details>
 
+<details id="health">
+  <summary>Sensor health<span id="healthSum"></span></summary>
+  <p class="muted">Every live shot reports which sensors heard it and which ones the target used to place it. A sensor that keeps missing shots, or keeps getting dropped because its timing doesn't agree with the others, is usually coming loose from the plate (System Design §11). Counts cover the last <span id="hlWin"></span> live shots. Simulated shots and calibration taps aren't counted, and <b>Clear shots</b> doesn't reset them.</p>
+  <div id="healthBody"></div>
+</details>
+
 <div class="tblwrap">
 <table id="tbl">
   <thead><tr><th>#</th><th>x</th><th>y</th><th>r</th><th>Time</th><th class="l">Notes</th></tr></thead>
@@ -283,12 +296,18 @@ let shots = store.get('og.v1.shots', []);           // oldest first
 const sync = Object.assign({ rxboot: 0, seq: 0, clears: 0 }, store.get('og.v1.sync', {}));
 const keys = new Set(shots.map(s => s.key));
 let target = null, linkOk = false, selected = -1;
+// Sensor health log: the last HL_WINDOW live shots' sensor masks. Kept apart from the shots so Clear shots doesn't reset it.
+// total counts every shot ever logged; snoozeAt is the total when the warning was last hidden.
+const HL = Object.assign({ log: [], total: 0, snoozeAt: null, nch: 0 }, store.get('og.v1.health', {}));
+if (!Array.isArray(HL.log)) HL.log = [];
+let healthDirty = true;
+function saveHealth() { store.set('og.v1.health', HL); healthDirty = true; }
 
 function saveCfg() { store.set('og.v1.cfg', cfg); }
 function saveShots() {
   if (shots.length > MAX_STORE) shots = shots.slice(shots.length - MAX_STORE);
   store.set('og.v1.shots', shots.map(s => ({ key: s.key, idx: s.idx, boot: s.boot, n: s.n, x: s.x, y: s.y, rms: s.rms, flags: s.flags, at: s.at,
-    rssi: s.rssi, snr: s.snr })));
+    rssi: s.rssi, snr: s.snr, fired: s.fired, used: s.used, nch: s.nch })));
   store.set('og.v1.sync', sync);
 }
 
@@ -459,7 +478,16 @@ function updateStats() {
   $('stMrA').textContent = fmtAng(mr);
 }
 
-const flagNames = f => FLAGS.filter((x, b) => x && f & (1 << b)).map(x => x.replace(/_/g, ' ')).join(', ');
+const sensorList = m => [0, 1, 2, 3, 4, 5, 6, 7].filter(i => m & (1 << i)).map(i => 'S' + (i + 1)).join(' ');
+function flagNames(h) {  // the shot's flags as text, naming the sensors behind missing_ch and dropped_ch when known
+  const known = h.nch > 0 && h.fired != null;
+  return FLAGS.map((x, b) => {
+    if (!x || !(h.flags & (1 << b))) return null;
+    if (known && b === 0) { const m = ((1 << h.nch) - 1) & ~h.fired; if (m) return 'missed ' + sensorList(m); }
+    if (known && b === 2) { const m = h.fired & ~h.used; if (m) return 'dropped ' + sensorList(m); }
+    return x.replace(/_/g, ' ');
+  }).filter(Boolean).join(', ');
+}
 
 function updateTable() {
   const vis = visible(), tb = $('rows');
@@ -468,7 +496,7 @@ function updateTable() {
   for (let i = vis.length - 1; i >= 0; i--) {
     const h = vis[i], tr = document.createElement('tr');
     if (i === vis.length - 1) tr.className = 'new';
-    const notes = flagNames(h.flags), fix = !(h.flags & F_NOFIX);
+    const notes = flagNames(h), fix = !(h.flags & F_NOFIX);
     const t = h.at ? new Date(h.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '';
     const cells = [h.idx, fix ? fmtSigned(h.x) : '—', fix ? fmtSigned(h.y) : '—',
       fix ? fmtLen(Math.hypot(h.x, h.y)) : '—', t, notes || `rms ${h.rms} ns`];
@@ -509,9 +537,13 @@ function demoFetch(since) {
   if (Math.random() < 0.25 || (since === 0 && demoSeq === 0)) {
     demoSeq++;
     const a = Math.random() * 2 * Math.PI, rr = 25 * Math.sqrt(Math.random());
+    // Demo S3 is working loose and misses about a third of the shots. S5 is now and then dropped for a bad time.
+    let fired = 31, used = 31, flags = Math.random() < 0.12 ? 0x02 : 0;
+    if (Math.random() < 0.35) { fired &= ~0x04; used = fired; flags |= 0x01; }
+    else if (Math.random() < 0.08) { used &= ~0x10; flags |= 0x04; }
     out.shots.push({ seq: demoSeq, boot: 40211, n: demoSeq, x: +(12 + rr * Math.cos(a)).toFixed(1),
-      y: +(-6 + rr * Math.sin(a)).toFixed(1), rms: 60 + Math.floor(Math.random() * 120), fired: 31, used: 31,
-      flags: Math.random() < 0.12 ? 0x02 : 0, rssi: -88, snr: 7, t_ms: now });
+      y: +(-6 + rr * Math.sin(a)).toFixed(1), rms: 60 + Math.floor(Math.random() * 120), fired, used,
+      flags, rssi: -88, snr: 7, t_ms: now });
     out.seq = demoSeq;
   }
   return Promise.resolve(out);
@@ -534,6 +566,8 @@ function ingest(d) {
     sync.clears = d.clears; shots = []; keys.clear(); selected = -1; changed = true;
   }
   const skew = Date.now() - d.now_ms;         // receiver millis -> wall clock
+  // Active sensor count from the target's status; until the first status arrives, the last one seen.
+  if (d.target && d.target.n_ch > 0 && d.target.n_ch !== HL.nch) { HL.nch = d.target.n_ch; saveHealth(); }
   for (const s of d.shots || []) {
     if (s.seq > sync.seq) sync.seq = s.seq;
     const key = s.boot + ':' + s.n;           // target boot id + shot number: unique across retries and reboots
@@ -543,9 +577,10 @@ function ingest(d) {
     // The target's own check flag (0x80) maps onto the app's cal_check flag.
     const flags = s.flags & F_TGT_CHECK ? (s.flags & ~F_TGT_CHECK) | F_CHECK : s.flags;
     const sh = { key, idx, boot: s.boot, n: s.n, x: s.x, y: s.y, rms: s.rms, flags, at: skew + s.t_ms,
-      rssi: s.rssi, snr: s.snr };
+      rssi: s.rssi, snr: s.snr, fired: s.fired, used: s.used, nch: HL.nch || undefined };
     rangeOnShot(sh);  // the signal range test collects its synthetic shots
     calOnShot(sh);    // the calibration wizard counts taps and marks check taps
+    healthOnShot(sh); // per-sensor miss counts for the loose-sensor warning
     shots.push(sh);
     changed = true;
   }
@@ -553,6 +588,8 @@ function ingest(d) {
   if (changed) { saveShots(); refresh(); }
   target = d.target;
   updatePills();
+  if (target && target.rejects !== hlRejects) { hlRejects = target.rejects; healthDirty = true; }
+  if (healthDirty) renderHealth();
 }
 
 const fmtAge = s => s < 120 ? s + ' s' : Math.round(s / 60) + ' min';
@@ -641,7 +678,7 @@ cv.addEventListener('pointerdown', e => {
   selected = best;
   const tip = $('tip');
   if (best >= 0) {
-    const h = vis[best], f = flagNames(h.flags);
+    const h = vis[best], f = flagNames(h);
     tip.textContent = `#${h.idx}  x ${fmtSigned(h.x)}  y ${fmtSigned(h.y)}  r ${fmtLen(Math.hypot(h.x, h.y))}` + (f ? '  ·  ' + f : '') +
       (Number.isFinite(h.rssi) ? `  ·  ${Math.round(h.rssi)} dBm, SNR ${h.snr} dB` : '');
     tip.style.left = h._px[0] + 'px'; tip.style.top = (h._px[1] - 8) + 'px'; tip.style.display = 'block';
@@ -1461,10 +1498,110 @@ $('range').addEventListener('click', e => {
   else if (act === 'stop') { RT.stop = true; renderRange(); }
 });
 
+// ---------------------------------------------------------------------------
+// Sensor health. Each live shot's `fired` mask shows which sensors heard it and
+// `used` which ones the solver kept. A sensor that keeps missing shots, or keeps
+// being dropped because its time doesn't fit, is usually working loose
+// (System Design §11). Shots the target rejects for too few sensors never reach
+// the receiver, so they only show up in the target's `rejects` counter.
+// ---------------------------------------------------------------------------
+const HL_WINDOW = 20, HL_WARN = 5, HL_WATCH = 3, HL_SNOOZE = 10;
+const HL_LIVE = s => !(s.flags & (F_SIM | F_CAL | F_CHECK | F_RANGE));
+let hlRejects = null;
+
+function healthOnShot(sh) {
+  if (!HL_LIVE(sh) || !(sh.nch > 0) || !Number.isFinite(sh.fired)) return;
+  if (HL.log.some(e => e.k === sh.key)) return;
+  // A no-fix shot has no solution, so nothing was dropped from it.
+  const used = sh.flags & F_NOFIX || !Number.isFinite(sh.used) ? sh.fired : sh.used;
+  HL.log.push({ k: sh.key, n: sh.nch, f: sh.fired, u: used });
+  if (HL.log.length > HL_WINDOW) HL.log = HL.log.slice(-HL_WINDOW);
+  HL.total++;
+  saveHealth();
+}
+
+function healthRows() {  // one row per sensor over the logged shots
+  const nch = HL.log.reduce((m, e) => Math.max(m, e.n), 0), rows = [];
+  for (let i = 0; i < nch; i++) {
+    const b = 1 << i;
+    let n = 0, miss = 0, drop = 0;
+    for (const e of HL.log) {
+      if (i >= e.n) continue;
+      n++;
+      if (!(e.f & b)) miss++; else if (!(e.u & b)) drop++;
+    }
+    const bad = miss + drop;
+    rows.push({ s: 'S' + (i + 1), n, miss, drop, bad, level: bad >= HL_WARN ? 2 : bad >= HL_WATCH ? 1 : 0 });
+  }
+  return rows;
+}
+
+function healthMsg(r) {
+  const of = `of the last ${plural(r.n, 'shot')}`;
+  if (r.miss === r.n) return `Sensor <b>${r.s}</b> hasn't fired on any ${of}. Check its cable and plug, then its bond to the plate.`;
+  if (!r.drop) return `Sensor <b>${r.s}</b> missed ${r.miss} ${of}. Check its bond to the plate.`;
+  if (!r.miss) return `Sensor <b>${r.s}</b> was dropped from ${r.drop} ${of} because its timing didn't fit. Check its bond to the plate.`;
+  return `Sensor <b>${r.s}</b> missed ${r.miss} and was dropped from ${r.drop} ${of}. Check its bond to the plate.`;
+}
+
+function renderHealth() {
+  healthDirty = false;
+  const rows = healthRows(), warn = rows.filter(r => r.level === 2).sort((a, b) => b.bad - a.bad);
+  const snoozed = HL.snoozeAt != null && HL.total < HL.snoozeAt + HL_SNOOZE;
+  if (HL.snoozeAt != null && !snoozed) { HL.snoozeAt = null; store.set('og.v1.health', HL); }
+
+  // Banner under the header
+  const bn = $('sensorWarn');
+  bn.hidden = !warn.length || snoozed;
+  if (!bn.hidden) {
+    bn.innerHTML = `<span class="txt">${healthMsg(warn[0])}` +
+      (warn.length > 1 ? ` Also check ${warn.slice(1).map(r => r.s).join(', ')}.` : '') + '</span>' +
+      '<button class="ghost" data-hact="show">Details</button>' +
+      `<button class="ghost" data-hact="snooze">Hide for ${HL_SNOOZE} shots</button>`;
+  }
+
+  // Panel
+  $('hlWin').textContent = HL_WINDOW;
+  $('healthSum').innerHTML = warn.length ? ` · <span class="warnpill">check ${warn.map(r => r.s).join(', ')}</span>` :
+    rows.some(r => r.level === 1) ? ' · <span class="muted">watch</span>' : '';
+  let h = '';
+  if (!HL.log.length) {
+    h += '<p class="muted">No live shots logged yet.</p>';
+  } else {
+    h += '<div class="tblwrap"><table><thead><tr><th class="l">Sensor</th><th>Fired</th><th>Missed</th><th>Dropped</th><th class="l">Status</th></tr></thead><tbody>';
+    for (const r of rows) {
+      const st = r.level === 2 ? ['bad', 'Check bond'] : r.level === 1 ? ['high', 'Watch'] : ['good', 'OK'];
+      h += `<tr><td class="l">${r.s}</td><td>${r.n - r.miss} of ${r.n}</td><td>${r.miss}</td><td>${r.drop}</td>` +
+        `<td class="l ${st[0]}">${st[1]}</td></tr>`;
+    }
+    h += '</tbody></table></div>';
+    h += `<p class="muted">Missed: the sensor didn't trigger. Dropped: it triggered, but its time didn't agree with the others, so the target placed the shot without it. ` +
+      `${HL_WATCH} or more of either is worth watching, and ${HL_WARN} or more raises the warning. A weak hit far out on the plate can miss a sensor now and then, but the same sensor missing again and again points to its bond.</p>`;
+  }
+  if (target && target.seen && Number.isFinite(target.rejects) && target.rejects > 0)
+    h += `<p class="muted">Since it started, the target has also heard ${plural(target.rejects, 'impact')} that too few sensors picked up to place. A loose sensor causes those too, but they can't be traced to one sensor.</p>`;
+  h += '<div class="btnrow"><button class="ghost" data-hact="reset"' + (HL.log.length ? '' : ' disabled') + '>Reset counts</button></div>' +
+    "<p class=\"muted\">Reset after re-gluing or replacing a sensor, so old misses don't keep the warning up.</p>";
+  $('healthBody').innerHTML = h;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-hact]');
+  if (!b || b.disabled) return;
+  const act = b.dataset.hact;
+  if (act === 'show') { $('health').open = true; $('health').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  else if (act === 'snooze') { HL.snoozeAt = HL.total; saveHealth(); renderHealth(); }
+  else if (act === 'reset') {
+    if (!confirm('Reset the sensor counts? Do this after re-gluing or replacing a sensor.')) return;
+    HL.log = []; HL.snoozeAt = null; saveHealth(); renderHealth();
+  }
+});
+
 $('footInfo').textContent = DEMO ? 'Demo mode: synthetic shots, no receiver.' :
   `Receiver at ${location.host}. Shots and settings are stored in this browser (up to ${MAX_STORE} shots).`;
 applyCfg();
 renderBusy();
+renderHealth();
 poll();
 })();
 </script>

@@ -150,6 +150,7 @@
   <button id="btnClear">Clear shots</button>
 </header>
 
+<div class="banner" id="rejectWarn" role="status" hidden></div>
 <div class="banner" id="sensorWarn" role="status" hidden></div>
 
 <div class="wrap">
@@ -520,13 +521,14 @@ function refresh() { draw(); updateStats(); updateTable(); }
 //   GET  /api/cmd?id=<id>        -> { id, state: pending|done|unknown, text, gap, age_ms }
 // Add ?demo to the URL to run with synthetic shots and no receiver.
 // ---------------------------------------------------------------------------
-let demoSeq = 0, demoClears = 0;
+let demoSeq = 0, demoClears = 0, demoRejects = 1, demoReject = null;
 const demoQueue = [];  // taps from the calibration wizard's "Simulate tap" button
 function demoFetch(since) {
   const now = Math.round(performance.now());
   const out = { rxboot: 777, seq: demoSeq, clears: demoClears, now_ms: now, shots: [],
-    target: { seen: true, age_s: 3, boot: 40211, batt_mv: 4012, rssi: -88, shots: demoSeq, rejects: 1,
+    target: { seen: true, age_s: 3, boot: 40211, batt_mv: 4012, rssi: -88, shots: demoSeq, rejects: demoRejects,
       mode: demoT.cal.active ? 'cal' : 'normal', n_ch: 5 } };
+  if (demoReject) out.reject = demoReject;
   while (demoQueue.length) {
     const s = demoQueue.shift();
     demoSeq++;
@@ -534,6 +536,14 @@ function demoFetch(since) {
     out.seq = demoSeq;
   }
   if (out.shots.length || W.step !== 'idle' || RT.run) return Promise.resolve(out);  // no random shots during calibration or a signal range test
+  if (demoSeq > 0 && Math.random() < 0.01) {  // now and then an impact only 3 sensors heard
+    demoRejects++;
+    demoReject = { id: (demoReject ? demoReject.id : 0) + 1, boot: 40211, rejects: demoRejects,
+      fired: 31 & ~0x04 & ~(1 << [0, 1, 3, 4][Math.floor(Math.random() * 4)]), n_ch: 5, need: 4, t_ms: now };
+    out.reject = demoReject;
+    out.target.rejects = demoRejects;
+    return Promise.resolve(out);
+  }
   if (Math.random() < 0.25 || (since === 0 && demoSeq === 0)) {
     demoSeq++;
     const a = Math.random() * 2 * Math.PI, rr = 25 * Math.sqrt(Math.random());
@@ -588,6 +598,7 @@ function ingest(d) {
   if (changed) { saveShots(); refresh(); }
   target = d.target;
   updatePills();
+  rejectsOnPoll(d, skew);
   if (target && target.rejects !== hlRejects) { hlRejects = target.rejects; healthDirty = true; }
   if (healthDirty) renderHealth();
 }
@@ -605,6 +616,51 @@ function updatePills() {
     (target.mode === 'cal' ? ' · <b>calibrating</b>' : '') +
     (target.defaults ? ' · <b class="warnpill">not calibrated: nothing saved on the target</b>' : '');
 }
+
+// ---------------------------------------------------------------------------
+// Impacts heard but not placed. When fewer than `minch` sensors fire, the target
+// can't place the hit and sends no shot, only a small reject notice (d.reject)
+// and a higher `rejects` count in its status. Without a word, the shooter fires
+// and nothing shows up. The count is what's tracked, so a lost notice is still
+// caught by the next status; the notice adds which sensors fired.
+// ---------------------------------------------------------------------------
+const REJ = { boot: null, count: 0, id: null };
+function rejectsOnPoll(d, skew) {
+  const t = d.target, r = d.reject;
+  if (!t || !t.seen || !Number.isFinite(t.rejects)) return;
+  if (REJ.boot === null) {          // first reply since the page loaded: old rejects aren't news
+    Object.assign(REJ, { boot: t.boot, count: t.rejects, id: r ? r.id : 0 });
+    return;
+  }
+  if (t.boot !== REJ.boot) { REJ.boot = t.boot; REJ.count = 0; }  // the target restarted: its count starts over
+  let detail = null;
+  if (r && r.id !== REJ.id) { REJ.id = r.id; if (r.boot === t.boot) detail = r; }
+  const added = t.rejects - REJ.count;
+  REJ.count = t.rejects;
+  if (added > 0) showReject(added, detail, detail ? skew + detail.t_ms : Date.now());
+}
+
+function showReject(added, r, at) {
+  const time = new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  let h = added === 1 ? `<b>Impact heard but not placed</b> (${time}).` :
+    `<b>${added} impacts heard but not placed</b> (latest ${time}).`;
+  if (r && r.n_ch > 0) {
+    const fired = [], missed = [];
+    for (let i = 0; i < r.n_ch; i++) (r.fired & (1 << i) ? fired : missed).push('S' + (i + 1));
+    const n = `${fired.length} of ${r.n_ch} sensors`;
+    h += (added === 1 ? ` Only ${n} picked it up` : ` The latest reached only ${n}`) +
+      ` (${r.need} needed to place a shot)` + (missed.length ? `; ${missed.join(', ')} didn't fire.` : '.');
+  } else {
+    h += ' Too few sensors picked it up to place it.';
+  }
+  h += ' <span class="muted">Edge hits, fragments on the stand or nearby steel can cause this. If it keeps happening, check the sensor bonds.</span>';
+  const bn = $('rejectWarn');
+  bn.innerHTML = `<span class="txt">${h}</span><button class="ghost" data-rjact="ok">OK</button>`;
+  bn.hidden = false;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('button[data-rjact]')) $('rejectWarn').hidden = true;
+});
 
 let pollTimer = 0;
 async function poll() {
@@ -1502,8 +1558,9 @@ $('range').addEventListener('click', e => {
 // Sensor health. Each live shot's `fired` mask shows which sensors heard it and
 // `used` which ones the solver kept. A sensor that keeps missing shots, or keeps
 // being dropped because its time doesn't fit, is usually working loose
-// (System Design §11). Shots the target rejects for too few sensors never reach
-// the receiver, so they only show up in the target's `rejects` counter.
+// (System Design §11). Shots the target rejects for too few sensors aren't sent
+// as shots: only the `rejects` counter and a reject notice (see rejectsOnPoll)
+// report them, and the notice comes from a rate-limited sample, so they aren't counted per sensor here.
 // ---------------------------------------------------------------------------
 const HL_WINDOW = 20, HL_WARN = 5, HL_WATCH = 3, HL_SNOOZE = 10;
 const HL_LIVE = s => !(s.flags & (F_SIM | F_CAL | F_CHECK | F_RANGE));

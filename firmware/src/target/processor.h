@@ -16,6 +16,8 @@ struct ShotView {
 
 void processorBegin(uint16_t bootId);
 void processEvent(const RawEvent& ev, uint8_t extraFlags);
+// Call from loop(): sends a reject notice that was held back by the rate limit.
+void processorPoll();
 
 bool processorLastShot(ShotView& out);
 uint16_t processorShotCount();

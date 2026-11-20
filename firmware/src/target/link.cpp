@@ -178,6 +178,8 @@ void linkSendShot(const og::ShotPacket& pkt) { enqueue(&pkt, sizeof pkt, true, p
 
 void linkSendStatus(const og::StatusPacket& pkt) { enqueue(&pkt, sizeof pkt, false, 0, 0); }
 
+void linkSendReject(const og::RejectPacket& pkt) { enqueue(&pkt, sizeof pkt, false, 0, 0); }
+
 void linkSendResponse(uint8_t seq, const char* text, size_t len) {
   if (!s_out) return;
   uint8_t part = 0;

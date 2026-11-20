@@ -90,6 +90,7 @@ enum PacketType : uint8_t {
   PKT_STATUS = 3,  // target -> receiver heartbeat, not acknowledged
   PKT_CMD    = 4,  // receiver -> target console command (text)
   PKT_RESP   = 5,  // target -> receiver console output (text, may be split)
+  PKT_REJECT = 6,  // target -> receiver: impact heard but too few channels to place it, not acknowledged
 };
 
 enum ShotFlags : uint8_t {
@@ -145,6 +146,20 @@ struct __attribute__((packed)) StatusPacket {
   uint16_t uptime_min;
   uint8_t  n_ch;
   uint8_t  mode;  // StatusMode bits
+  uint16_t crc;
+};
+
+// Sent when an impact is rejected because fewer than min_ch channels fired.
+// Rate-limited by the target; the rejects count says how many happened in all,
+// so one packet can stand for several and a lost one is caught by the next
+// packet or status heartbeat.
+struct __attribute__((packed)) RejectPacket {
+  PacketHeader hdr;
+  uint16_t boot_id;
+  uint16_t rejects;  // rejects since boot, this one included (same counter as StatusPacket)
+  uint8_t  fired;    // bitmask: channels that triggered on the latest reject
+  uint8_t  n_ch;     // active channels
+  uint8_t  need;     // channels needed to place a shot (min_ch)
   uint16_t crc;
 };
 

@@ -77,6 +77,15 @@ struct {
   float rssi = 0;
 } s_tgt;
 
+// The latest reject notice: an impact heard but not placed. id counts notices
+// since this receiver started, so a browser can tell a new one from the last.
+struct {
+  uint32_t id = 0;  // 0 = none yet
+  uint32_t t_ms = 0;
+  uint16_t boot = 0, rejects = 0;
+  uint8_t fired = 0, n_ch = 0, need = 0;
+} s_rej;
+
 WebServer s_http(80);
 DNSServer s_dns;
 char s_ip[16] = "0.0.0.0";
@@ -112,6 +121,14 @@ void handleShots() {
              (unsigned long)((now - s_tgt.heardAt) / 1000), s_tgt.boot, s_tgt.batt_mv, s_tgt.rssi, s_tgt.shots,
              s_tgt.rejects, (s_tgt.mode & og::STATUS_CAL) ? "cal" : "normal",
              (s_tgt.mode & og::STATUS_DEFAULTS) ? "true" : "false", s_tgt.n_ch, s_tgt.haveStatus ? "true" : "false");
+    s_http.sendContent(s_buf);
+  }
+
+  if (s_rej.id) {
+    snprintf(s_buf, sizeof s_buf,
+             ",\"reject\":{\"id\":%lu,\"boot\":%u,\"rejects\":%u,\"fired\":%u,\"n_ch\":%u,\"need\":%u,\"t_ms\":%lu}",
+             (unsigned long)s_rej.id, s_rej.boot, s_rej.rejects, s_rej.fired, s_rej.n_ch, s_rej.need,
+             (unsigned long)s_rej.t_ms);
     s_http.sendContent(s_buf);
   }
 
@@ -347,6 +364,23 @@ void recordStatus(const og::StatusPacket& st, float rssi) {
   s_tgt.rejects = st.rejects;
   s_tgt.n_ch = st.n_ch;
   s_tgt.mode = st.mode;
+  s_tgt.rssi = rssi;
+}
+
+void recordReject(const og::RejectPacket& r, float rssi) {
+  s_rej.id++;
+  s_rej.t_ms = millis();
+  s_rej.boot = r.boot_id;
+  s_rej.rejects = r.rejects;
+  s_rej.fired = r.fired;
+  s_rej.n_ch = r.n_ch;
+  s_rej.need = r.need;
+
+  s_tgt.heardAt = millis();
+  if (s_tgt.boot != r.boot_id) s_tgt.shots = 0;  // the target restarted since its last status
+  s_tgt.boot = r.boot_id;
+  s_tgt.rejects = r.rejects;
+  if (r.n_ch) s_tgt.n_ch = r.n_ch;
   s_tgt.rssi = rssi;
 }
 

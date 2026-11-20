@@ -29,6 +29,15 @@ CalState s_cal;
 uint16_t s_bootId = 0;
 uint16_t s_shots = 0;
 uint16_t s_rejects = 0;
+// Reject notices to the receiver. At most one per kRejectGapMs: fragments on the
+// stand or shots on nearby steel can reject over and over, and each notice costs
+// air time (the EU band allows 1% duty cycle). A held-back notice goes out when
+// the gap has passed, carrying the running count, so none are lost.
+constexpr uint32_t kRejectGapMs = 2000;
+bool s_rejectPending = false;
+uint8_t s_rejectFired = 0, s_rejectNch = 0, s_rejectNeed = 0;
+uint32_t s_rejectSentAt = 0;
+bool s_rejectSentAny = false;
 ShotView s_last;
 bool s_haveLast = false;
 bool s_check = false;
@@ -103,9 +112,28 @@ double solveThickness(const Config& c) {
   return (calFace && s_cal.backFace) ? 0.0 : c.thick_mm;
 }
 
+void flushReject() {
+  if (!s_rejectPending) return;
+  if (s_rejectSentAny && millis() - s_rejectSentAt < kRejectGapMs) return;
+  og::RejectPacket pkt = {};
+  og::initHeader(pkt.hdr, og::PKT_REJECT);
+  pkt.boot_id = s_bootId;
+  pkt.rejects = s_rejects;
+  pkt.fired = s_rejectFired;
+  pkt.n_ch = s_rejectNch;
+  pkt.need = s_rejectNeed;
+  og::seal(pkt);
+  linkSendReject(pkt);
+  s_rejectPending = false;
+  s_rejectSentAny = true;
+  s_rejectSentAt = millis();
+}
+
 }  // namespace
 
 void processorBegin(uint16_t bootId) { s_bootId = bootId; }
+
+void processorPoll() { flushReject(); }
 
 void processEvent(const RawEvent& ev, uint8_t extraFlags) {
   const Config c = g_cfg;
@@ -134,6 +162,12 @@ void processEvent(const RawEvent& ev, uint8_t extraFlags) {
     Serial.printf("{\"type\":\"reject\",\"fired\":");
     printMask(Serial, fired, nch);
     Serial.printf(",\"need\":%d}\n", c.min_ch);
+    // Tell the receiver, so the shooter isn't left wondering where the shot went.
+    s_rejectPending = true;
+    s_rejectFired = fired;
+    s_rejectNch = static_cast<uint8_t>(nch);
+    s_rejectNeed = c.min_ch;
+    flushReject();
     return;
   }
 

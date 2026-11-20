@@ -69,6 +69,8 @@ int s_seenPos = 0;
 StatusPacket s_status;
 bool s_haveStatus = false;
 uint32_t s_statusAt = 0;
+constexpr uint32_t kRejectShowMs = 5000;  // how long the OLED shows "not placed"
+uint32_t s_rejectAt = 0;                   // millis() of the last reject notice; 0 = none
 uint32_t s_rxCount = 0, s_dupCount = 0;
 volatile uint32_t s_ackCount = 0;  // written by the radio task only
 
@@ -148,6 +150,8 @@ void draw() {
   const float scale = rpx / kPlotRingMm;
   s_oled.drawCircle(cx, cy, rpx);
   s_oled.setPixel(cx, cy);
+  // An impact the target heard but couldn't place replaces the bottom-left line for a few seconds.
+  const bool showReject = s_rejectAt && millis() - s_rejectAt < kRejectShowMs;
   for (int i = 0; i < s_nhits; ++i) {
     const int px = cx + static_cast<int>(lroundf(s_hits[i].x * scale));
     const int py = cy - static_cast<int>(lroundf(s_hits[i].y * scale));
@@ -163,7 +167,7 @@ void draw() {
                                                                  : "target online");
     s_oled.drawString(0, 32, "WiFi:");
     s_oled.drawString(0, 42, webui::ssid());
-    s_oled.drawString(0, 53, webui::ipAddress());
+    s_oled.drawString(0, 53, showReject ? "not placed" : webui::ipAddress());
     s_oled.display();
     return;
   }
@@ -187,7 +191,7 @@ void draw() {
   s_oled.drawString(0, 40, line);
   const bool noCal = s_haveStatus && (s_status.mode & STATUS_DEFAULTS);
   snprintf(line, sizeof line, "%.0fdBm%s", s_last.rssi, noCal ? " NOCAL" : "");
-  s_oled.drawString(0, 52, line);
+  s_oled.drawString(0, 52, showReject ? "not placed" : line);
   s_oled.display();
 }
 
@@ -252,6 +256,17 @@ void handleStatus(const StatusPacket& st, float rssi) {
       "\"n_ch\":%u,\"mode\":\"%s\",\"defaults\":%s,\"rssi\":%.0f}\n",
       st.boot_id, st.shots, st.rejects, st.batt_mv, st.uptime_min, st.n_ch, (st.mode & STATUS_CAL) ? "cal" : "normal",
       (st.mode & STATUS_DEFAULTS) ? "true" : "false", rssi);
+  s_dirty = true;
+}
+
+// The target heard an impact but too few sensors fired to place it.
+void handleReject(const RejectPacket& r, float rssi) {
+  webui::recordReject(r, rssi);
+  if (s_haveStatus && s_status.boot_id == r.boot_id) s_status.rejects = r.rejects;
+  s_rejectAt = millis();
+  if (!s_rejectAt) s_rejectAt = 1;
+  Serial.printf("{\"type\":\"reject\",\"boot\":%u,\"rejects\":%u,\"fired\":%u,\"n_ch\":%u,\"need\":%u,\"rssi\":%.0f}\n",
+                r.boot_id, r.rejects, r.fired, r.n_ch, r.need, rssi);
   s_dirty = true;
 }
 
@@ -320,6 +335,12 @@ void pollRadio() {
         StatusPacket p;
         memcpy(&p, m.buf, sizeof p);
         handleStatus(p, m.rssi);
+        break;
+      }
+      case PKT_REJECT: {
+        RejectPacket p;
+        memcpy(&p, m.buf, sizeof p);
+        handleReject(p, m.rssi);
         break;
       }
       case PKT_RESP:

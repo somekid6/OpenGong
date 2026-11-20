@@ -119,6 +119,7 @@ void setup() {
 void loop() {
   RawEvent ev;
   while (captureNext(ev, 0)) processEvent(ev, 0);
+  processorPoll();
 
   consolePollSerial();
 

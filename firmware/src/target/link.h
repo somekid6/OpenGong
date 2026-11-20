@@ -20,6 +20,7 @@ struct LinkStats {
 bool linkBegin();
 void linkSendShot(const og::ShotPacket& pkt);    // acknowledged, up to 3 resends
 void linkSendStatus(const og::StatusPacket& pkt);
+void linkSendReject(const og::RejectPacket& pkt);  // not acknowledged
 void linkSendResponse(uint8_t seq, const char* text, size_t len);
 bool linkNextCommand(char* buf, size_t cap, uint8_t& seq);
 LinkStats linkStats();

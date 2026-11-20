@@ -32,6 +32,7 @@ bool packetValid(const uint8_t* buf, size_t len) {
     case PKT_SHOT:   return len == sizeof(ShotPacket);
     case PKT_ACK:    return len == sizeof(AckPacket);
     case PKT_STATUS: return len == sizeof(StatusPacket);
+    case PKT_REJECT: return len == sizeof(RejectPacket);
     case PKT_CMD:
     case PKT_RESP:   return len >= kTextOverhead && len <= kMaxPacket;
     default:         return false;

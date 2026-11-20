@@ -8,7 +8,8 @@
 // moment can catch up; nothing is written to flash.
 //
 // HTTP API (JSON):
-//   GET  /api/shots?since=<seq>  shots with seq > since, target status, counters
+//   GET  /api/shots?since=<seq>  shots with seq > since, target status, counters, and
+//                                the latest reject notice ("reject", once one has arrived)
 //   POST /api/clear              drop the ring buffer, bump the clear counter
 //   POST /api/cmd   (form c=...) relay one console line to the target -> { ok, id }
 //   POST /api/cmd   (retry=<id>) resend that command with its original seq -> { ok, id }
@@ -38,6 +39,9 @@ void poll();
 // Store a de-duplicated shot / the latest target status for the browsers.
 void recordShot(const og::ShotPacket& p, float rssi, float snr);
 void recordStatus(const og::StatusPacket& st, float rssi);
+
+// An impact the target heard but couldn't place (too few sensors fired).
+void recordReject(const og::RejectPacket& r, float rssi);
 
 // One chunk of the target's console reply (PKT_RESP), matched to the command by seq.
 void recordResponse(uint8_t seq, uint8_t part, const char* text);
